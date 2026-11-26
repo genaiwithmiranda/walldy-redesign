@@ -1,0 +1,489 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Walldy designförslag</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300;9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: en orange signal löper från loggans kärna genom hela sidan och tänder varje sektion, som ett automationsflöde */
+:root{
+  color-scheme:light;
+  --brand:#FF733B; --brand-deep:#c8501f; --glow:#FFC27A;
+  --ink:#141414; --ink-2:#3d3d3b; --muted:#77756f;
+  --bg:#f4f3ef; --card:#ffffff; --line:rgba(20,20,20,.11); --line-2:rgba(20,20,20,.2);
+  --display:'Recoleta','Fraunces',Georgia,serif;
+  --sans:'Inter Tight',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --gut:clamp(44px,7vw,120px);
+  --sec:clamp(110px,17vh,190px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+h1,h2,h3,p{margin:0}
+::selection{background:var(--brand);color:#fff}
+.display{font-family:var(--display);font-weight:300;font-variation-settings:'SOFT' 100;letter-spacing:-.028em;line-height:1.02;text-wrap:balance}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:15px 24px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;transition:transform .35s var(--ease),background .25s,color .25s,border-color .25s}
+.btn:hover{transform:translateY(-2px)}
+.btn.dark{background:var(--ink);color:#fff}.btn.dark:hover{background:var(--brand)}
+.btn.ghost{border:1px solid var(--line-2)}.btn.ghost:hover{border-color:var(--ink)}
+.btn:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+.wrap{padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px))}
+.rv{opacity:0;transform:translateY(22px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:30;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(244,243,239,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .3s}
+.nav.scrolled{border-color:var(--line)}
+.logo{display:block;width:138px}.logo svg{display:block;width:100%;height:auto}
+.nav ul{display:flex;gap:34px;list-style:none;margin:0;padding:0;font-size:15px;font-weight:500}
+.nav ul a{opacity:.7;transition:opacity .2s}.nav ul a:hover{opacity:1}
+.nav .btn{padding:12px 20px}
+
+/* ---------- signalen ---------- */
+main{position:relative}
+#wire{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+#wire path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#wireBg{stroke:var(--line);stroke-width:1.5}
+#wireFg{stroke:var(--brand);stroke-width:2.5}
+#wireHead{fill:var(--brand)}
+#wireHalo{fill:var(--brand);opacity:.22}
+section{position:relative;z-index:2}
+.node{position:absolute;width:15px;height:15px;border-radius:50%;background:var(--bg);border:1.5px solid var(--line-2);transition:background .4s,border-color .4s,box-shadow .6s;z-index:3}
+.node.hit{background:var(--brand);border-color:var(--brand);box-shadow:0 0 0 7px rgba(255,115,59,.16)}
+.head{position:relative;max-width:820px}
+.head .node{left:calc(var(--gut) * -.5 - 7px);top:1px}
+.head.r{margin-left:auto}
+.head.r .node{left:auto;right:calc(var(--gut) * -.5 - 7px)}
+.head .mono{color:var(--muted);display:block;margin-bottom:26px}
+.head .mono b{color:var(--brand-deep);font-weight:500}
+.head h2{font-size:clamp(36px,4.8vw,78px)}
+.head p{margin-top:24px;max-width:52ch;color:var(--ink-2)}
+.sec{padding-top:var(--sec)}
+
+/* ---------- hero ---------- */
+.hero{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:clamp(20px,4vw,70px);padding-top:110px;padding-bottom:70px;background:radial-gradient(rgba(20,20,20,.13) 1px,transparent 1.5px) 0 0/22px 22px;-webkit-mask:linear-gradient(#000 78%,transparent);mask:linear-gradient(#000 78%,transparent)}
+.kicker{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 16px 9px 12px;color:var(--ink-2)}
+.kicker i{width:7px;height:7px;border-radius:50%;background:var(--brand);animation:blip 2.2s infinite}
+@keyframes blip{0%{box-shadow:0 0 0 0 rgba(255,115,59,.6)}70%,100%{box-shadow:0 0 0 9px rgba(255,115,59,0)}}
+.hero h1{font-size:clamp(50px,7.3vw,128px);margin:30px 0 28px;line-height:.96}
+.hero h1 .ln{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+.hero h1 .ln>span{display:inline-block;transform:translateY(105%);transition:transform 1.2s var(--ease)}
+.ready .hero h1 .ln>span{transform:none}
+.hero h1 .ln:nth-child(2)>span{transition-delay:.1s}.hero h1 .ln:nth-child(3)>span{transition-delay:.2s}
+.swap{color:var(--brand);display:inline-block}
+.swap em{font-style:normal;display:inline-block;transition:transform .55s var(--ease),opacity .4s}
+.swap em.out{transform:translateY(-45%);opacity:0}.swap em.in{transform:translateY(45%);opacity:0;transition:none}
+.hero .lead{max-width:44ch;font-size:19px;color:var(--ink-2)}
+.hero .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px}
+.stage{position:relative;width:100%;max-width:560px;aspect-ratio:1;justify-self:center;perspective:900px}
+.ring{position:absolute;border-radius:50%;border:1px solid var(--line);inset:4%}
+.ring.b{inset:19%;border-style:dashed;animation:spin 70s linear infinite}
+.ring.c{inset:4%;border-color:transparent;border-top-color:var(--brand);animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.halo{position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle,rgba(255,115,59,.26),rgba(255,115,59,0) 68%);filter:blur(6px);animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.12);opacity:.75}}
+.tilt{position:absolute;inset:25%;transform-style:preserve-3d;will-change:transform;transition:transform .25s ease-out}
+.tilt svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 22px 26px rgba(200,80,31,.28))}
+#heroStroke{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.6s cubic-bezier(.6,0,.2,1)}
+.ready #heroStroke{stroke-dashoffset:0}
+#heroFill{opacity:0;transform:scale(.6);transform-origin:26.2px 28.7px;transition:opacity .8s 1.5s,transform 1s var(--ease) 1.5s}
+.ready #heroFill{opacity:1;transform:none}
+.chip{position:absolute;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;white-space:nowrap;display:flex;gap:8px;align-items:center;opacity:0;transition:opacity .8s,border-color .3s,box-shadow .3s;box-shadow:0 8px 20px -14px rgba(20,20,20,.4)}
+.ready .chip{opacity:1}
+.chip b{color:var(--brand-deep);font-weight:500}
+.chip.on{border-color:var(--brand);box-shadow:0 12px 26px -12px rgba(255,115,59,.7)}
+.stage .node{left:50%;top:50%;opacity:0}
+
+/* ---------- live-körning ---------- */
+.runner{margin-top:56px;background:var(--card);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 40px 80px -50px rgba(20,20,20,.35)}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{flex:1;min-width:max-content;padding:20px 22px;text-align:left;border-right:1px solid var(--line);color:var(--muted);transition:color .3s,background .3s;position:relative}
+.tabs button:last-child{border-right:0}
+.tabs button span{display:block;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:22px;letter-spacing:-.01em;color:var(--ink);text-transform:none;margin-top:6px}
+.tabs button::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--brand);transform:scaleX(0);transform-origin:left}
+.tabs button.on{background:rgba(255,115,59,.05)}
+.tabs button.on::after{transform:scaleX(1);transition:transform var(--dur,7s) linear}
+.board{padding:44px clamp(20px,3.4vw,48px) 30px}
+.flow{display:flex;align-items:flex-start}
+.fn{flex:none;width:118px;text-align:center}
+.fn .ic{width:58px;height:58px;margin:0 auto 12px;border-radius:18px;border:1px solid var(--line-2);display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--bg);transition:background .4s,border-color .4s,color .4s,transform .5s var(--ease),box-shadow .5s}
+.fn.done .ic{background:var(--ink);border-color:var(--ink);color:#fff}
+.fn.now .ic{background:var(--brand);border-color:var(--brand);color:#fff;transform:scale(1.12);box-shadow:0 14px 30px -10px rgba(255,115,59,.8)}
+.fn strong{display:block;font-size:14.5px;font-weight:500;line-height:1.25}
+.fn small{display:block;margin-top:4px;color:var(--muted);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.fw{flex:1;height:2px;margin-top:29px;min-width:14px;background:var(--line);position:relative;overflow:hidden;border-radius:2px}
+.fw::after{content:"";position:absolute;inset:0;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform .7s var(--ease)}
+.fw.done::after{transform:scaleX(1)}
+.out{margin-top:38px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:18px}
+.log{background:var(--ink);color:#d9d6cf;border-radius:18px;padding:20px 22px;font-family:var(--mono);font-size:12.5px;line-height:1.9;min-height:198px}
+.log div{display:flex;gap:14px}.log time{color:#77756f;flex:none}
+.log .hl{color:var(--glow)}
+.log .cur::after{content:"▍";color:var(--brand);animation:bl 1s steps(2) infinite;margin-left:2px}
+@keyframes bl{50%{opacity:0}}
+.result{border:1px solid var(--line);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;justify-content:space-between;gap:16px;transition:border-color .5s,background .5s}
+.result.done{border-color:var(--brand);background:rgba(255,115,59,.06)}
+.result h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:26px;letter-spacing:-.015em;line-height:1.1}
+.result .mono{color:var(--muted)}
+.runfoot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px clamp(20px,3.4vw,48px);border-top:1px solid var(--line);color:var(--muted)}
+
+/* ---------- områden ---------- */
+.areas{display:grid;grid-template-columns:repeat(3,1fr);margin-top:56px;border-top:1px solid var(--line-2);border-left:1px solid var(--line)}
+.area{padding:30px 28px 34px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;overflow:hidden;background:var(--bg);transition:background .45s,color .45s}
+.area::before{content:"";position:absolute;inset:0;background:var(--ink);transform:translateY(101%);transition:transform .6s var(--ease)}
+.area:hover::before{transform:none}
+.area>*{position:relative}
+.area:hover{color:#fff}
+.area .mono{color:var(--brand-deep);transition:color .4s}.area:hover .mono{color:var(--glow)}
+.area h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(24px,2.2vw,32px);letter-spacing:-.015em;line-height:1.1;margin:44px 0 12px}
+.area p{color:var(--ink-2);font-size:15.5px;transition:color .4s}.area:hover p{color:#c9c6bf}
+
+/* ---------- principer ---------- */
+.princ{margin-top:56px;border-top:1px solid var(--line-2)}
+.pr{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:baseline;padding:26px 0;border-bottom:1px solid var(--line);transition:padding .5s var(--ease),color .3s}
+.pr .mono{color:var(--muted)}
+.pr h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(28px,3.4vw,54px);letter-spacing:-.02em;line-height:1.05;transition:color .3s}
+.pr p{color:var(--ink-2);max-width:40ch}
+.pr:hover{padding-left:18px}.pr:hover h3{color:var(--brand)}
+
+/* ---------- process ---------- */
+.steps{margin-top:70px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px 24px 30px;transition:border-color .5s,box-shadow .6s,transform .7s var(--ease)}
+.step:nth-child(2){margin-top:70px}.step:nth-child(3){margin-top:140px}.step:nth-child(4){margin-top:210px}
+.step .node{left:24px;top:-8px}
+.step.on{border-color:var(--brand);box-shadow:0 26px 50px -30px rgba(255,115,59,.7)}
+.step .num{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:74px;line-height:1;letter-spacing:-.03em;color:var(--line-2);transition:color .5s}
+.step.on .num{color:var(--brand)}
+.step h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:28px;letter-spacing:-.015em;margin:26px 0 8px}
+.step p{color:var(--ink-2);font-size:15.5px}
+
+/* ---------- siffror, verktyg, team ---------- */
+.facts{margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line-2)}
+.fact{padding:34px 26px 0 0}
+.fact strong{display:block;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(70px,10vw,170px);letter-spacing:-.045em;line-height:.92;font-variant-numeric:tabular-nums}
+.fact strong i{font-style:normal;color:var(--brand)}
+.fact span{display:block;margin-top:16px;color:var(--muted)}
+.tools{margin-top:80px;display:flex;overflow:hidden;white-space:nowrap;-webkit-mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.tools div{display:flex;gap:10px;padding-right:10px;flex:none;animation:slide 36s linear infinite}
+.tools span{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:13px 22px}
+@keyframes slide{to{transform:translateX(-100%)}}
+.team{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.person{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.person .av{width:84px;height:84px;border-radius:26px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:34px}
+.person:nth-child(2) .av{background:var(--brand)}
+.person h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:30px;letter-spacing:-.015em;line-height:1.1}
+.person .mono{color:var(--muted);display:block;margin:6px 0 12px}
+.person a{border-bottom:1px solid var(--line-2);font-size:15px}.person a:hover{color:var(--brand-deep);border-color:var(--brand)}
+
+/* ---------- kontakt ---------- */
+.contact{padding-top:var(--sec);padding-bottom:var(--sec)}
+.cbox{position:relative;background:var(--ink);color:#fff;border-radius:clamp(26px,3.4vw,44px);padding:clamp(56px,8vw,110px) clamp(22px,5vw,80px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(36px,5vw,80px)}
+.cbox .node{left:50%;top:-8px;margin-left:-7px;border-color:#555}
+.cbox .mono{color:var(--glow)}
+.cbox h2{font-size:clamp(38px,4.8vw,76px);margin:24px 0}
+.cbox .txt{color:#bdbab3;max-width:40ch}
+.ways{margin-top:40px}
+.ways a,.ways div{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-top:1px solid #333;font-size:16px}
+.ways a:hover{color:var(--glow)}
+.ways small{display:block;color:#8f8c85;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+form label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8f8c85;margin-bottom:22px}
+form input,form textarea{display:block;width:100%;margin-top:8px;background:none;border:0;border-bottom:1px solid #444;color:#fff;font:400 18px var(--sans);padding:6px 0 12px;border-radius:0;outline:none;transition:border-color .3s}
+form input:focus,form textarea:focus{border-color:var(--brand)}
+form textarea{resize:vertical;min-height:84px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+form .btn{background:var(--brand);color:#141414;width:100%;justify-content:space-between;padding:19px 24px}
+form .btn:hover{background:#fff}
+.fine{margin-top:14px;color:#8f8c85;text-align:center}
+.okmsg{margin-top:16px;padding:14px 16px;border:1px solid var(--brand);border-radius:14px;color:var(--glow);font-size:15px}
+footer{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;padding-top:26px;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));color:var(--muted);border-top:1px solid var(--line)}
+footer nav{display:flex;gap:22px}footer a:hover{color:var(--ink)}
+.proposal{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:10px;white-space:nowrap;pointer-events:none}
+
+@media (max-width:900px){
+  :root{--gut:34px}
+  .nav ul{display:none}
+  .hero{grid-template-columns:1fr;padding-top:100px;gap:10px}
+  .stage{order:-1;max-width:330px}
+  .chip{display:none}
+  .head.r{margin-left:0}.head.r .node{right:auto;left:calc(var(--gut) * -.5 - 7px)}
+  .flow{flex-direction:column;align-items:stretch;gap:0}
+  .fn{width:auto;display:grid;grid-template-columns:58px 1fr;column-gap:16px;text-align:left;align-items:center}
+  .fn .ic{margin:0;grid-row:span 2}.fn strong{align-self:end}.fn small{align-self:start}
+  .fw{flex:none;width:2px;height:22px;margin:4px 0 4px 28px;min-width:0}
+  .fw::after{transform:scaleY(0);transform-origin:top}.fw.done::after{transform:scaleY(1)}
+  .out,.areas,.team,.cbox,.two{grid-template-columns:1fr}
+  .pr{grid-template-columns:40px 1fr;gap:6px 14px}.pr p{grid-column:2}
+  .steps{grid-template-columns:1fr;gap:26px}
+  .step:nth-child(n){margin-top:0}
+  .facts{grid-template-columns:1fr}
+  .cbox .node{left:calc(var(--gut) * -.5 - 7px + 7px);margin-left:-7px;top:40px;display:none}
+  .person{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0s!important}
+}
+</style>
+
+<header class="nav wrap" id="nav">
+  <a class="logo" href="#top" aria-label="Walldy AI"><svg viewBox="0 0 220 58" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M14.7593 32.4199V25.0013V22.3036L17.5012 20.7601L23.1453 17.5827L26.1643 15.8967L29.0774 17.5827L34.5671 20.7601L37.234 22.3036V25.0013V32.4199V35.1176L34.5671 36.5799L28.6243 39.8385L26.1643 41.1873L23.1453 39.8385L17.5012 36.6611L14.7593 35.1176V32.4199ZM25.1779 23.2471L26.2072 19.606L28.0943 26.8882L35.5567 29.0459L28.0943 30.9339L25.9034 38.4897L24.1486 30.9339L16.7719 29.0459L24.1486 26.8882L25.1779 23.2471Z" fill="#FF733B"/><path d="M26.2072 19.606L25.178 23.2471L24.1486 26.8882L16.772 29.0459L24.1486 30.9339L25.9035 38.4897L28.0943 30.9339L35.5568 29.0459L28.0943 26.8882L26.2072 19.606Z" fill="white"/><path d="M17.5014 14.5478L8.72152 9.82688L0.335449 14.5478V23.9897L8.72152 28.8909M8.72152 28.8909L14.7595 32.4199M8.72152 28.8909L14.7595 25.0013M17.5014 42.8734L8.72152 47.5943L0.335449 42.8734V33.4315L8.72152 28.8909M17.5014 14.5478L9.39241 19.008L0.335449 23.9897M17.5014 14.5478L23.1456 17.5827M17.5014 14.5478V20.7601M34.5607 14.5478L34.5506 5.10592L26.1646 0.384995L17.5014 5.10592V14.5478M17.5014 14.5478L26.026 9.82688M9.39241 19.008L14.7595 22.3036M14.7595 32.4199V25.0013M14.7595 32.4199V35.1176M14.7595 25.0013V22.3036M14.7595 35.1176L9.39241 38.4131M23.1456 39.8385L17.5014 36.6611L14.7595 35.1176M23.1456 17.5827L17.5014 20.7601L14.7595 22.3036M23.1456 17.5827L26.1646 15.8966M26.1646 15.8966L26.026 9.82688M34.5673 20.7601L29.0776 17.5827L26.1646 15.8966M34.5607 14.5478L34.5673 20.7601M34.5607 14.5478L29.0776 17.5827M43.6076 28.7795L51.9937 23.9897L51.6582 14.5478L43.2722 9.82688L34.5607 14.5478M51.9937 23.9897L42.9367 19.0843L34.5607 14.5478M34.5506 5.10592L26.026 9.82688M17.5014 42.8734L9.39241 38.4131M17.5014 42.8734L23.1456 39.8385M34.5673 42.9868L26.1646 47.5943L17.5014 42.8734M17.5014 42.8734V36.6611M17.5014 42.8734V52.3152L26.026 57.0362L34.5673 52.3152V42.9868M0.335449 33.4315L9.39241 38.4131M23.1456 39.8385L26.1646 41.1873M26.1646 41.1873V47.5943M26.1646 41.1873L28.6245 39.8385M43.6076 28.7795L51.9937 33.4315V42.8734L43.6076 47.5943L34.5673 42.9868M34.5673 42.9868L42.9367 38.3977M34.5673 42.9868V36.5798M34.5673 42.9868L28.6245 39.8385M37.2342 35.1176L34.5673 36.5798L28.6245 39.8385M37.2342 35.1176V32.4199M37.2342 35.1176L42.9367 38.3977M37.2342 32.4199L43.6076 28.7795M37.2342 32.4199V25.0013M42.9367 38.3977L51.9937 33.4315M34.5673 20.7601L37.2342 22.3036M37.2342 22.3036V25.0013M37.2342 22.3036L42.9367 19.0843M37.2342 25.0013L43.6076 28.7795M26.2074 19.6059L25.1782 23.2471L24.1488 26.8882L16.7722 29.0459L24.1488 30.9339L25.9037 38.4897L28.0945 30.9339L35.557 29.0459L28.0945 26.8882L26.2074 19.6059Z" stroke="#FF733B"/><path d="M209.128 38.245C209.176 38.749 209.308 39.145 209.524 39.433C209.74 39.697 209.968 39.865 210.208 39.937C210.448 39.985 210.664 40.057 210.856 40.153C211.048 40.249 211.144 40.393 211.144 40.585C211.144 41.089 210.376 41.341 208.84 41.341C207.976 41.341 207.34 41.185 206.932 40.873C206.524 40.537 206.284 39.901 206.212 38.965C205.3 40.645 203.572 41.485 201.028 41.485C199.012 41.485 197.392 41.005 196.168 40.045C194.944 39.085 194.332 37.753 194.332 36.049C194.308 34.369 194.908 33.061 196.132 32.125C197.38 31.189 198.976 30.721 200.92 30.721C202.84 30.721 204.316 31.201 205.348 32.161L205.276 31.189C205.06 28.981 204.616 27.337 203.944 26.257C203.272 25.177 202.24 24.637 200.848 24.637C200.008 24.637 199.312 24.853 198.76 25.285C198.208 25.717 197.824 26.185 197.608 26.689C197.416 27.193 197.176 27.661 196.888 28.093C196.6 28.525 196.264 28.741 195.88 28.741C195.448 28.741 195.1 28.621 194.836 28.381C194.596 28.141 194.476 27.817 194.476 27.409C194.476 26.401 195.064 25.501 196.24 24.709C197.44 23.893 198.976 23.485 200.848 23.485C203.032 23.485 204.772 24.157 206.068 25.501C207.388 26.821 208.168 28.681 208.408 31.081L209.128 38.245ZM201.82 40.333C202.996 40.333 203.956 39.961 204.7 39.217C205.444 38.449 205.792 37.501 205.744 36.373L205.6 34.753C205.408 33.889 204.952 33.193 204.232 32.665C203.536 32.137 202.672 31.873 201.64 31.873C200.416 31.873 199.42 32.221 198.652 32.917C197.884 33.613 197.5 34.513 197.5 35.617C197.5 36.961 197.896 38.089 198.688 39.001C199.504 39.889 200.548 40.333 201.82 40.333ZM215.531 20.425C214.787 20.425 214.199 20.221 213.767 19.813C213.335 19.405 213.119 18.865 213.119 18.193C213.119 17.521 213.335 16.981 213.767 16.573C214.223 16.141 214.811 15.925 215.531 15.925C216.227 15.925 216.791 16.141 217.223 16.573C217.655 16.981 217.871 17.521 217.871 18.193C217.871 18.865 217.655 19.405 217.223 19.813C216.791 20.221 216.227 20.425 215.531 20.425ZM213.443 41.125C212.987 41.125 212.759 40.969 212.759 40.657V40.513C212.759 40.345 212.867 40.189 213.083 40.045C213.299 39.877 213.515 39.685 213.731 39.469C213.947 39.229 214.055 38.929 214.055 38.569V27.841C214.055 27.289 213.839 26.809 213.407 26.401C212.975 25.993 212.759 25.729 212.759 25.609V25.537C212.759 25.369 212.939 25.189 213.299 24.997L216.071 23.629C216.455 23.485 216.731 23.461 216.899 23.557C217.091 23.653 217.187 23.845 217.187 24.133V38.569C217.187 38.857 217.259 39.109 217.403 39.325C217.547 39.517 217.715 39.661 217.907 39.757C218.099 39.853 218.267 39.973 218.411 40.117C218.555 40.237 218.627 40.369 218.627 40.513V40.657C218.627 40.969 218.375 41.125 217.871 41.125H213.443Z" fill="currentColor"/><path d="M186.301 38.9492L186.695 40.5732L186.64 40.5498L185.03 39.6816L184.5 39.3955V38.5088L186.301 38.9492ZM190 39.3916L189.496 39.6572L187.777 40.5586L187.764 40.5654L188.251 38.9561L190 38.5312V39.3916ZM186.831 35.2598L186.534 36.2676L186.314 37.0098L184.5 37.5176V36.4463L185.03 36.1611L186.662 35.2822L186.661 35.2812L186.854 35.1787L186.831 35.2598ZM187.898 35.2793L189.486 36.1582L190 36.4424V37.4902L188.264 37.0107L187.794 35.2705L187.777 35.2119L187.898 35.2793Z" fill="currentColor" stroke="#FF733B"/><path d="M111.38 14.315C111.812 14.315 112.028 14.447 112.028 14.711V14.819C112.028 15.011 111.788 15.275 111.308 15.611C110.828 15.923 110.492 16.331 110.3 16.835L103.208 38.939C102.992 39.563 102.524 39.875 101.804 39.875C101.204 39.875 100.796 39.575 100.58 38.975L95.288 23.567L89.744 38.939C89.552 39.563 89.132 39.875 88.484 39.875C87.908 39.875 87.5 39.575 87.26 38.975L78.656 16.871C78.488 16.439 78.248 16.103 77.936 15.863C77.624 15.623 77.36 15.431 77.144 15.287C76.928 15.143 76.82 14.975 76.82 14.783V14.711C76.82 14.447 77.036 14.315 77.468 14.315H82.544C83 14.315 83.228 14.459 83.228 14.747V14.819C83.228 15.011 83.096 15.191 82.832 15.359C82.568 15.503 82.34 15.695 82.148 15.935C81.956 16.151 81.932 16.463 82.076 16.871L89.096 35.807L94.388 20.975L92.984 16.835C92.816 16.331 92.468 15.911 91.94 15.575C91.436 15.239 91.184 14.975 91.184 14.783V14.711C91.184 14.447 91.376 14.315 91.76 14.315H96.908C97.316 14.315 97.52 14.447 97.52 14.711V14.783C97.52 14.951 97.376 15.107 97.088 15.251C96.824 15.395 96.584 15.587 96.368 15.827C96.152 16.067 96.104 16.403 96.224 16.835L102.488 35.771L108.356 16.835C108.452 16.547 108.44 16.295 108.32 16.079C108.224 15.863 108.08 15.707 107.888 15.611C107.72 15.515 107.552 15.407 107.384 15.287C107.216 15.143 107.132 14.999 107.132 14.855V14.783C107.132 14.471 107.348 14.315 107.78 14.315H111.38ZM126.808 36.995C126.856 37.499 126.988 37.895 127.204 38.183C127.42 38.447 127.648 38.615 127.888 38.687C128.128 38.735 128.344 38.807 128.536 38.903C128.728 38.999 128.824 39.143 128.824 39.335C128.824 39.839 128.056 40.091 126.52 40.091C125.656 40.091 125.02 39.935 124.612 39.623C124.204 39.287 123.964 38.651 123.892 37.715C122.98 39.395 121.252 40.235 118.708 40.235C116.692 40.235 115.072 39.755 113.848 38.795C112.624 37.835 112.012 36.503 112.012 34.799C111.988 33.119 112.588 31.811 113.812 30.875C115.06 29.939 116.656 29.471 118.6 29.471C120.52 29.471 121.996 29.951 123.028 30.911L122.956 29.939C122.74 27.731 122.296 26.087 121.624 25.007C120.952 23.927 119.92 23.387 118.528 23.387C117.688 23.387 116.992 23.603 116.44 24.035C115.888 24.467 115.504 24.935 115.288 25.439C115.096 25.943 114.856 26.411 114.568 26.843C114.28 27.275 113.944 27.491 113.56 27.491C113.128 27.491 112.78 27.371 112.516 27.131C112.276 26.891 112.156 26.567 112.156 26.159C112.156 25.151 112.744 24.251 113.92 23.459C115.12 22.643 116.656 22.235 118.528 22.235C120.712 22.235 122.452 22.907 123.748 24.251C125.068 25.571 125.848 27.431 126.088 29.831L126.808 36.995ZM119.5 39.083C120.676 39.083 121.636 38.711 122.38 37.967C123.124 37.199 123.472 36.251 123.424 35.123L123.28 33.503C123.088 32.639 122.632 31.943 121.912 31.415C121.216 30.887 120.352 30.623 119.32 30.623C118.096 30.623 117.1 30.971 116.332 31.667C115.564 32.363 115.18 33.263 115.18 34.367C115.18 35.711 115.576 36.839 116.368 37.751C117.184 38.639 118.228 39.083 119.5 39.083ZM130.943 39.875C130.487 39.875 130.259 39.719 130.259 39.407V39.299C130.259 39.107 130.463 38.855 130.871 38.543C131.303 38.207 131.519 37.811 131.519 37.355V17.123C131.519 16.715 131.411 16.379 131.195 16.115C131.003 15.827 130.799 15.599 130.583 15.431C130.367 15.263 130.259 15.107 130.259 14.963V14.891C130.259 14.699 130.427 14.507 130.763 14.315L133.571 12.947C133.931 12.803 134.207 12.791 134.399 12.911C134.591 13.007 134.687 13.187 134.687 13.451V37.355C134.687 37.811 134.915 38.207 135.371 38.543C135.851 38.855 136.091 39.107 136.091 39.299V39.407C136.091 39.719 135.851 39.875 135.371 39.875H130.943ZM139.45 39.875C138.994 39.875 138.766 39.719 138.766 39.407V39.299C138.766 39.107 138.97 38.855 139.378 38.543C139.81 38.207 140.026 37.811 140.026 37.355V17.123C140.026 16.715 139.918 16.379 139.702 16.115C139.51 15.827 139.306 15.599 139.09 15.431C138.874 15.263 138.766 15.107 138.766 14.963V14.891C138.766 14.699 138.934 14.507 139.27 14.315L142.078 12.947C142.438 12.803 142.714 12.791 142.906 12.911C143.098 13.007 143.194 13.187 143.194 13.451V37.355C143.194 37.811 143.422 38.207 143.878 38.543C144.358 38.855 144.598 39.107 144.598 39.299V39.407C144.598 39.719 144.358 39.875 143.878 39.875H139.45ZM163.834 37.355C163.834 37.835 164.05 38.255 164.482 38.615C164.938 38.975 165.166 39.227 165.166 39.371V39.479C165.166 39.743 164.986 39.875 164.626 39.875H161.602C161.242 39.875 161.038 39.683 160.99 39.299L160.918 37.499C160.318 38.387 159.526 39.071 158.542 39.551C157.582 40.007 156.55 40.235 155.446 40.235C153.166 40.235 151.21 39.395 149.578 37.715C147.946 36.035 147.13 33.863 147.13 31.199C147.13 28.583 147.934 26.435 149.542 24.755C151.15 23.075 153.154 22.235 155.554 22.235C157.666 22.235 159.406 23.015 160.774 24.575V16.727C160.774 16.295 160.642 15.947 160.378 15.683C160.138 15.419 159.886 15.215 159.622 15.071C159.382 14.927 159.262 14.771 159.262 14.603V14.531C159.262 14.291 159.442 14.087 159.802 13.919L162.718 12.947C163.462 12.659 163.834 12.839 163.834 13.487V37.355ZM156.202 39.047C157.354 39.047 158.398 38.591 159.334 37.679C160.294 36.743 160.774 35.471 160.774 33.863H160.81L160.774 32.027V28.427C160.774 27.203 160.246 26.063 159.19 25.007C158.158 23.927 156.934 23.387 155.518 23.387C153.958 23.387 152.686 24.011 151.702 25.259C150.742 26.483 150.25 28.103 150.226 30.119C150.178 32.615 150.718 34.727 151.846 36.455C152.974 38.159 154.426 39.023 156.202 39.047ZM184.619 22.595C184.955 22.595 185.123 22.739 185.123 23.027V23.135C185.123 23.351 184.907 23.639 184.475 23.999C184.067 24.359 183.743 24.815 183.503 25.367L176.699 40.379C176.291 41.315 175.991 41.975 175.799 42.359C175.607 42.767 175.271 43.379 174.791 44.195C174.335 45.011 173.915 45.599 173.531 45.959C173.147 46.343 172.643 46.691 172.019 47.003C171.419 47.339 170.783 47.507 170.111 47.507C168.839 47.507 167.783 47.159 166.943 46.463C166.103 45.791 165.683 45.071 165.683 44.303C165.683 43.871 165.803 43.523 166.043 43.259C166.283 42.995 166.619 42.863 167.051 42.863C167.459 42.863 167.807 43.031 168.095 43.367C168.383 43.727 168.587 44.123 168.707 44.555C168.851 44.987 169.079 45.371 169.391 45.707C169.727 46.067 170.147 46.247 170.651 46.247C172.067 46.247 173.531 44.351 175.043 40.559L168.131 25.331C167.867 24.803 167.507 24.359 167.051 23.999C166.619 23.639 166.403 23.351 166.403 23.135V23.027C166.403 22.739 166.583 22.595 166.943 22.595H171.623C171.959 22.595 172.127 22.739 172.127 23.027V23.135C172.127 23.303 172.019 23.495 171.803 23.711C171.611 23.903 171.467 24.095 171.371 24.287C171.275 24.455 171.323 24.815 171.515 25.367L176.699 37.571L181.847 25.655C182.039 25.223 182.075 24.875 181.955 24.611C181.835 24.323 181.667 24.119 181.451 23.999C181.235 23.855 181.019 23.711 180.803 23.567C180.587 23.423 180.479 23.279 180.479 23.135V23.027C180.479 22.739 180.659 22.595 181.019 22.595H184.619Z" fill="currentColor"/></svg></a>
+  <ul><li><a href="#live">Så fungerar det</a></li><li><a href="#omraden">Områden</a></li><li><a href="#process">Process</a></li><li><a href="#team">Vi</a></li></ul>
+  <a class="btn dark" href="#kontakt">Boka samtal</a>
+</header>
+<div class="proposal mono">Designförslag · inte Walldys officiella webbplats</div>
+
+<main id="top">
+  <svg id="wire" aria-hidden="true"><path id="wireBg"/><path id="wireFg"/><circle id="wireHalo" r="13"/><circle id="wireHead" r="5"/></svg>
+
+  <!-- HERO -->
+  <section class="hero wrap">
+    <div>
+      <span class="kicker mono"><i></i>AI-agenter &amp; automation · Sundsvall</span>
+      <h1 class="display"><span class="ln"><span>Vi gör AI</span></span><span class="ln"><span>enkelt och</span></span><span class="ln"><span><span class="swap" id="swap"><em>lönsamt.</em></span></span></span></h1>
+      <p class="lead">Från det ni gör varje dag till det ni vill göra imorgon. Vi bygger AI-agenter och automationer för just er verksamhet.</p>
+      <div class="btns"><a class="btn dark" href="#kontakt">Boka ett samtal →</a><a class="btn ghost" href="#live">Se en automation köra</a></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="halo"></div><div class="ring"></div><div class="ring b"></div><div class="ring c"></div>
+      <div class="tilt" id="tilt"><svg viewBox="-1 -1 55 60" fill="none" role="img" aria-label="Walldys logotyp"><defs><linearGradient id="shine" gradientUnits="userSpaceOnUse" x1="-30" y1="0" x2="30" y2="58"><stop offset="0" stop-color="#FF733B"/><stop offset=".45" stop-color="#FF733B"/><stop offset=".5" stop-color="#FFD9A8"/><stop offset=".55" stop-color="#FF733B"/><stop offset="1" stop-color="#FF733B"/><animateTransform attributeName="gradientTransform" type="translate" values="-60 0;110 0" dur="4.5s" repeatCount="indefinite"/></linearGradient></defs><path id="heroStroke" pathLength="1" stroke-linejoin="round" stroke-linecap="round" d="M17.5014 14.5478L8.72152 9.82688L0.335449 14.5478V23.9897L8.72152 28.8909M8.72152 28.8909L14.7595 32.4199M8.72152 28.8909L14.7595 25.0013M17.5014 42.8734L8.72152 47.5943L0.335449 42.8734V33.4315L8.72152 28.8909M17.5014 14.5478L9.39241 19.008L0.335449 23.9897M17.5014 14.5478L23.1456 17.5827M17.5014 14.5478V20.7601M34.5607 14.5478L34.5506 5.10592L26.1646 0.384995L17.5014 5.10592V14.5478M17.5014 14.5478L26.026 9.82688M9.39241 19.008L14.7595 22.3036M14.7595 32.4199V25.0013M14.7595 32.4199V35.1176M14.7595 25.0013V22.3036M14.7595 35.1176L9.39241 38.4131M23.1456 39.8385L17.5014 36.6611L14.7595 35.1176M23.1456 17.5827L17.5014 20.7601L14.7595 22.3036M23.1456 17.5827L26.1646 15.8966M26.1646 15.8966L26.026 9.82688M34.5673 20.7601L29.0776 17.5827L26.1646 15.8966M34.5607 14.5478L34.5673 20.7601M34.5607 14.5478L29.0776 17.5827M43.6076 28.7795L51.9937 23.9897L51.6582 14.5478L43.2722 9.82688L34.5607 14.5478M51.9937 23.9897L42.9367 19.0843L34.5607 14.5478M34.5506 5.10592L26.026 9.82688M17.5014 42.8734L9.39241 38.4131M17.5014 42.8734L23.1456 39.8385M34.5673 42.9868L26.1646 47.5943L17.5014 42.8734M17.5014 42.8734V36.6611M17.5014 42.8734V52.3152L26.026 57.0362L34.5673 52.3152V42.9868M0.335449 33.4315L9.39241 38.4131M23.1456 39.8385L26.1646 41.1873M26.1646 41.1873V47.5943M26.1646 41.1873L28.6245 39.8385M43.6076 28.7795L51.9937 33.4315V42.8734L43.6076 47.5943L34.5673 42.9868M34.5673 42.9868L42.9367 38.3977M34.5673 42.9868V36.5798M34.5673 42.9868L28.6245 39.8385M37.2342 35.1176L34.5673 36.5798L28.6245 39.8385M37.2342 35.1176V32.4199M37.2342 35.1176L42.9367 38.3977M37.2342 32.4199L43.6076 28.7795M37.2342 32.4199V25.0013M42.9367 38.3977L51.9937 33.4315M34.5673 20.7601L37.2342 22.3036M37.2342 22.3036V25.0013M37.2342 22.3036L42.9367 19.0843M37.2342 25.0013L43.6076 28.7795M26.2074 19.6059L25.1782 23.2471L24.1488 26.8882L16.7722 29.0459L24.1488 30.9339L25.9037 38.4897L28.0945 30.9339L35.557 29.0459L28.0945 26.8882L26.2074 19.6059Z" stroke="url(#shine)"/><g id="heroFill"><path fill-rule="evenodd" clip-rule="evenodd" d="M14.7593 32.4199V25.0013V22.3036L17.5012 20.7601L23.1453 17.5827L26.1643 15.8967L29.0774 17.5827L34.5671 20.7601L37.234 22.3036V25.0013V32.4199V35.1176L34.5671 36.5799L28.6243 39.8385L26.1643 41.1873L23.1453 39.8385L17.5012 36.6611L14.7593 35.1176V32.4199ZM25.1779 23.2471L26.2072 19.606L28.0943 26.8882L35.5567 29.0459L28.0943 30.9339L25.9034 38.4897L24.1486 30.9339L16.7719 29.0459L24.1486 26.8882L25.1779 23.2471Z" fill="#FF733B"/><path d="M26.2072 19.606L25.178 23.2471L24.1486 26.8882L16.772 29.0459L24.1486 30.9339L25.9035 38.4897L28.0943 30.9339L35.5568 29.0459L28.0943 26.8882L26.2072 19.606Z" fill="white"/></g></svg></div>
+      <span class="node" data-node></span>
+    </div>
+  </section>
+
+  <!-- LIVE -->
+  <section class="sec wrap" id="live">
+    <div class="head"><span class="node" data-node></span><span class="mono"><b>01</b> — Se det köra</span>
+      <h2 class="display rv">En automation, från första signal till färdigt jobb.</h2>
+      <p class="rv">Välj en vardagssituation och följ hur en AI-agent tar hand om den, steg för steg, i systemen ni redan använder.</p></div>
+    <div class="runner rv">
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="board">
+        <div class="flow" id="flow"></div>
+        <div class="out"><div class="log" id="log"></div>
+          <div class="result" id="result"><span class="mono" id="resLabel">Resultat</span><h3 id="resText"></h3></div></div>
+      </div>
+      <div class="runfoot mono"><span>Exempelflöden. Er lösning byggs efter hur ni arbetar.</span><span id="runState">Kör…</span></div>
+    </div>
+  </section>
+
+  <!-- OMRÅDEN -->
+  <section class="sec wrap" id="omraden">
+    <div class="head r"><span class="node" data-node></span><span class="mono"><b>02</b> — Sex områden</span>
+      <h2 class="display rv">Vad skulle kunna fungera bättre hos er?</h2></div>
+    <div class="areas" id="areas"></div>
+  </section>
+
+  <!-- PRINCIPER -->
+  <section class="sec wrap">
+    <div class="head"><span class="node" data-node></span><span class="mono"><b>03</b> — Så tänker vi</span>
+      <h2 class="display rv">Nytta före hype.</h2>
+      <p class="rv">Sex principer som styr varje projekt, oavsett om det är en liten förbättring eller ett helt nytt arbetsflöde.</p></div>
+    <div class="princ" id="princ"></div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="sec wrap" id="process">
+    <div class="head r"><span class="node" data-node></span><span class="mono"><b>04</b> — Så arbetar vi</span>
+      <h2 class="display rv">Rätt steg i rätt ordning.</h2></div>
+    <div class="steps">
+      <article class="step"><span class="node" data-node></span><div class="num">01</div><h3>Kartläggning</h3><p>Vi lyssnar in hur ni arbetar idag. Ingen kravspecifikation behövs.</p></article>
+      <article class="step"><span class="node" data-node></span><div class="num">02</div><h3>Prioritering</h3><p>Det som ger störst nytta först, med kortast väg till resultat.</p></article>
+      <article class="step"><span class="node" data-node></span><div class="num">03</div><h3>Utveckling</h3><p>Vi bygger, testar och kopplar ihop med systemen ni redan har.</p></article>
+      <article class="step"><span class="node" data-node></span><div class="num">04</div><h3>Partnerskap</h3><p>Vi finns kvar och bygger vidare när ni vill ta nästa steg.</p></article>
+    </div>
+  </section>
+
+  <!-- SIFFROR -->
+  <section class="sec wrap">
+    <div class="head"><span class="node" data-node></span><span class="mono"><b>05</b> — I siffror</span>
+      <h2 class="display rv">Bygg vidare på det som fungerar. Bygg nytt där det behövs.</h2></div>
+    <div class="facts">
+      <div class="fact rv"><strong data-count="5">0<i>+</i></strong><span class="mono">Års erfarenhet</span></div>
+      <div class="fact rv"><strong data-count="50">0<i>+</i></strong><span class="mono">Lyckade projekt</span></div>
+      <div class="fact rv"><strong data-count="100">0<i>%</i></strong><span class="mono">Svensk drift och utveckling</span></div>
+    </div>
+    <div class="tools mono" aria-label="Verktyg vi kopplar ihop">
+      <div><span>OpenAI</span><span>Slack</span><span>Notion</span><span>HubSpot</span><span>Stripe</span><span>Shopify</span><span>Google Calendar</span><span>n8n</span></div>
+      <div aria-hidden="true"><span>OpenAI</span><span>Slack</span><span>Notion</span><span>HubSpot</span><span>Stripe</span><span>Shopify</span><span>Google Calendar</span><span>n8n</span></div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section class="sec wrap" id="team">
+    <div class="head r"><span class="node" data-node></span><span class="mono"><b>06</b> — Vi som bygger</span>
+      <h2 class="display rv">Litet team. Stort ägarskap.</h2></div>
+    <div class="team">
+      <article class="person rv"><div class="av">PH</div><div><h3>Pontus Henriksson</h3><span class="mono">VD &amp; IT-ansvarig</span><a href="mailto:pontus@walldy.ai">pontus@walldy.ai</a></div></article>
+      <article class="person rv"><div class="av">IL</div><div><h3>Iggy Lundmark</h3><span class="mono">Affärs- och marknadsansvarig</span><a href="mailto:iggy@walldy.ai">iggy@walldy.ai</a></div></article>
+    </div>
+  </section>
+
+  <!-- KONTAKT -->
+  <section class="contact wrap" id="kontakt">
+    <div class="cbox">
+      <span class="node" data-node></span>
+      <div>
+        <span class="mono">07 — Nästa steg är ert</span>
+        <h2 class="display">Berätta vad ni vill automatisera.</h2>
+        <p class="txt">En rad räcker. Vi hör av oss, normalt inom en arbetsdag, och bokar en inledande dialog.</p>
+        <div class="ways">
+          <a href="mailto:info@walldy.ai"><span>info@walldy.ai<small>Mejl</small></span><span>→</span></a>
+          <a href="tel:+46101985753"><span>010 198 57 53<small>Telefon</small></span><span>→</span></a>
+          <div><span>Sundsvall, Sverige<small>Kontor</small></span></div>
+        </div>
+      </div>
+      <form id="form" novalidate>
+        <div class="two"><label for="f-namn">Namn<input id="f-namn" name="namn" autocomplete="name" required></label><label for="f-ftg">Företag<input id="f-ftg" name="foretag" autocomplete="organization"></label></div>
+        <label for="f-epost">E-post<input id="f-epost" name="epost" type="email" autocomplete="email" required></label>
+        <label for="f-msg">Vad vill ni förbättra?<textarea id="f-msg" name="meddelande"></textarea></label>
+        <button class="btn" type="submit"><span>Skicka</span><span>→</span></button>
+        <p class="fine mono">Inga tekniska förkunskaper krävs</p>
+        <p class="okmsg" id="ok" role="status" hidden>Demo: inget har skickats. Formuläret kopplas till e-post före lansering.</p>
+      </form>
+    </div>
+  </section>
+</main>
+<footer class="wrap mono">
+  <span>© 2026 Walldy AB · Org.nr 559589-5243 · Sundsvall</span>
+  <nav><a href="https://www.linkedin.com/company/walldyai/">LinkedIn</a><a href="https://www.instagram.com/walldy.ai/">Instagram</a><a href="https://www.tiktok.com/@walldy.ai">TikTok</a></nav>
+</footer>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
+
+/* ---------- innehåll ---------- */
+const AREAS = [
+  ['Försäljning', 'Mer tid till att faktiskt sälja.', 'CRM, uppföljningar och kvalificering av leads som sköts automatiskt.'],
+  ['Kundkontakt', 'Tillgängliga när kunderna behöver er.', 'AI-agenter som svarar, bokar tider och lämnar över komplexa ärenden till rätt person.'],
+  ['Administration', 'Låt det repetitiva sköta sig självt.', 'Datainmatning, dokument och överföringar mellan system.'],
+  ['Ekonomi', 'Mindre handpåläggning. Bättre flöden.', 'Fakturahantering och rapportering mellan ekonomisystem och resten av verksamheten.'],
+  ['Marknadsföring', 'Från idé till publicerat, snabbare.', 'Research, innehåll och publicering i ett sammanhängande flöde.'],
+  ['Intern kunskap', 'Från vem vet det här till svar direkt.', 'Sökbara dokument och rutiner, så att svaren finns där frågan ställs.']
+];
+$('#areas').innerHTML = AREAS.map((a, i) => `<article class="area"><span class="mono">0${i + 1} — ${a[0]}</span><h3>${a[1]}</h3><p>${a[2]}</p></article>`).join('');
+const PRINC = [
+  ['Verksamheten först', 'Vi börjar i hur ni arbetar, inte i tekniken.'],
+  ['Nytta före hype', 'Det som byggs ska löna sig för er.'],
+  ['Moderna och säkra val', 'Beprövade verktyg, med svensk drift och utveckling.'],
+  ['Smidig implementation', 'Lösningen kopplas in i systemen ni redan använder.'],
+  ['Tydlig kommunikation', 'Ni vet vad som byggs, varför och när det är klart.'],
+  ['Inga inlåsningar', 'Ni ska kunna ta lösningen vidare, med eller utan oss.']
+];
+$('#princ').innerHTML = PRINC.map((p, i) => `<div class="pr rv"><span class="mono">0${i + 1}</span><h3>${p[0]}</h3><p>${p[1]}</p></div>`).join('');
+
+/* ---------- hero: etiketter runt loggan, lutning mot pekaren ---------- */
+const stage = $('#stage'), tilt = $('#tilt');
+const chips = AREAS.map((a, i) => { const c = document.createElement('span'); c.className = 'chip mono'; c.innerHTML = `<b>0${i + 1}</b>${a[0]}`;
+  c.style.transitionDelay = (1.9 + i * .12) + 's,0s,0s'; stage.appendChild(c); return c; });
+let orbit = 0, chipOn = 0;
+function placeChips() { chips.forEach((c, i) => { const a = orbit + i * Math.PI / 3 - Math.PI / 2; c.style.left = (50 + Math.cos(a) * 47) + '%'; c.style.top = (50 + Math.sin(a) * 47) + '%'; }); }
+placeChips();
+if (!reduce) setInterval(() => { chips[chipOn].classList.remove('on'); chipOn = (chipOn + 1) % 6; chips[chipOn].classList.add('on'); }, 1600);
+if (!reduce && matchMedia('(hover:hover) and (pointer:fine)').matches) addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect(); if (r.bottom < 0) return;
+  const x = clamp((e.clientX - (r.left + r.width / 2)) / innerWidth, -.5, .5), y = clamp((e.clientY - (r.top + r.height / 2)) / innerHeight, -.5, .5);
+  tilt.style.transform = `rotateY(${x * 34}deg) rotateX(${-y * 34}deg)`;
+});
+const words = ['lönsamt.', 'skalbart.', 'säkert.', 'prisvärt.'], swap = $('#swap'); let wi = 0;
+if (!reduce) setInterval(() => { $('em', swap).classList.add('out');
+  setTimeout(() => { wi = (wi + 1) % words.length; const em = document.createElement('em'); em.textContent = words[wi]; em.className = 'in'; swap.replaceChildren(em);
+    requestAnimationFrame(() => requestAnimationFrame(() => em.className = '')); }, 360); }, 2800);
+
+/* ---------- live-körning ---------- */
+const RUNS = [
+  { tab: 'Försäljning', title: 'Ett nytt lead kommer in', nodes: [['→', 'Formulär', 'Webbplats'], ['AI', 'Kvalificering', 'OpenAI'], ['CRM', 'Kort skapas', 'HubSpot'], ['31', 'Möte bokas', 'Google Calendar'], ['#', 'Säljaren får besked', 'Slack']],
+    log: ['Formulär inskickat från webbplatsen', 'Läser förfrågan och hämtar företagsuppgifter', 'Lead matchar er målgrupp, kort skapat i CRM', 'Tre lediga tider skickade, kunden valde torsdag', 'Sammanfattning skickad till säljaren'], res: 'Mötet är bokat innan någon hunnit öppna inkorgen.' },
+  { tab: 'Kundkontakt', title: 'En kund frågar kl. 22.14', nodes: [['?', 'Fråga i chatten', 'Webbplats'], ['AI', 'Söker svar', 'Era rutiner'], ['✓', 'Svarar kunden', 'AI-agent'], ['!', 'Bedömer ärendet', 'AI-agent'], ['@', 'Lämnar över', 'Rätt person']],
+    log: ['Fråga inkommen via chatten utanför kontorstid', 'Söker i villkor, rutiner och tidigare ärenden', 'Svar skickat med hänvisning till källan', 'Följdfrågan kräver ett beslut av en människa', 'Ärendet överlämnat med hela historiken'], res: 'Kunden fick svar direkt. Ni tar vid i morgon, med allt underlag klart.' },
+  { tab: 'Ekonomi', title: 'En leverantörsfaktura landar', nodes: [['PDF', 'Faktura in', 'Inkorg'], ['AI', 'Läser av', 'OpenAI'], ['=', 'Matchar order', 'Affärssystem'], ['✓', 'Attest', 'Ansvarig'], ['Σ', 'Bokförs', 'Ekonomisystem']],
+    log: ['Faktura mottagen som bilaga', 'Läser av belopp, referens och förfallodag', 'Matchar mot inköpsorder och avtal', 'Skickad för attest till ansvarig', 'Bokförd och rapporten uppdaterad'], res: 'Fakturan är hanterad utan att någon knappat in en siffra.' }
+];
+const tabs = $('#tabs'), flow = $('#flow'), log = $('#log'), result = $('#result'), resText = $('#resText'), runState = $('#runState');
+tabs.innerHTML = RUNS.map((r, i) => `<button role="tab" class="mono" data-i="${i}">${r.tab}<span>${r.title}</span></button>`).join('');
+let token = 0, picked = false, runStarted = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function type(el, text, my) { if (reduce) { el.textContent = text; return; } el.classList.add('cur');
+  for (let i = 1; i <= text.length; i++) { if (my !== token) return; el.textContent = text.slice(0, i); await wait(13); } el.classList.remove('cur'); }
+async function run(i) {
+  const my = ++token, r = RUNS[i];
+  const dur = reduce ? 0 : r.log.reduce((s, l) => s + l.length * 13 + 620, 400);
+  $$('button', tabs).forEach((b, j) => { b.classList.remove('on'); b.setAttribute('aria-selected', j === i); });
+  const tb = $$('button', tabs)[i]; tb.style.setProperty('--dur', dur + 'ms'); void tb.offsetWidth; tb.classList.add('on');
+  flow.innerHTML = r.nodes.map((n, j) => `<div class="fn"><div class="ic">${n[0]}</div><strong>${n[1]}</strong><small>${n[2]}</small></div>${j < 4 ? '<i class="fw"></i>' : ''}`).join('');
+  log.innerHTML = ''; result.classList.remove('done'); resText.textContent = '…'; runState.textContent = 'Kör…';
+  const fns = $$('.fn', flow), fws = $$('.fw', flow);
+  for (let k = 0; k < 5; k++) {
+    if (my !== token) return;
+    fns.forEach((n, j) => { n.classList.toggle('done', j < k); n.classList.toggle('now', j === k); });
+    fws.forEach((w, j) => w.classList.toggle('done', j < k));
+    const row = document.createElement('div'); row.innerHTML = `<time>0${k + 1}</time><span${k === 4 ? ' class="hl"' : ''}></span>`; log.appendChild(row);
+    await type(row.lastChild, r.log[k], my); await wait(reduce ? 0 : 620);
+  }
+  if (my !== token) return;
+  fns.forEach(n => { n.classList.remove('now'); n.classList.add('done'); });
+  result.classList.add('done'); resText.textContent = r.res; runState.textContent = 'Klart';
+  if (!picked && !reduce) { await wait(3200); if (my === token) run((i + 1) % RUNS.length); }
+}
+tabs.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; picked = true; run(+b.dataset.i); });
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting && !runStarted) { runStarted = true; o.disconnect(); run(0); } }, { threshold: .25 }).observe($('.runner'));
+
+/* ---------- reveal + räknare ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target; el.classList.add('in'); io.unobserve(el);
+  const c = $('[data-count]', el); if (!c) return; const to = +c.dataset.count, t0 = performance.now();
+  if (reduce) { c.firstChild.textContent = to; return; }
+  (function up(n) { const q = clamp((n - t0) / 1500); c.firstChild.textContent = Math.round(to * (1 - Math.pow(1 - q, 3))); if (q < 1) requestAnimationFrame(up); })(t0);
+}), { threshold: .15 });
+$$('.rv').forEach((el, i) => { if (el.classList.contains('pr')) el.style.transitionDelay = (i % 6) * 50 + 'ms'; io.observe(el); });
+
+/* ---------- signalen: en linje genom alla noder, ritas med scroll ---------- */
+const main = $('main'), wire = $('#wire'), bgP = $('#wireBg'), fgP = $('#wireFg'), headC = $('#wireHead'), haloC = $('#wireHalo');
+const nodes = $$('[data-node]'); let pts = [], samples = [], total = 0, cur = 0;
+function build() {
+  const m = main.getBoundingClientRect();
+  pts = nodes.filter(n => n.offsetParent !== null).map(n => { const r = n.getBoundingClientRect(); return { el: n, x: r.left + r.width / 2 - m.left, y: r.top + r.height / 2 - m.top }; }).sort((a, b) => a.y - b.y);
+  if (pts.length < 2) return;
+  let d = `M${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], g = Math.min(130, (b.y - a.y) * .6), y0 = b.y - g;
+    d += ` L${a.x} ${y0} C${a.x} ${y0 + g * .55} ${b.x} ${b.y - g * .55} ${b.x} ${b.y}`; }
+  wire.setAttribute('viewBox', `0 0 ${m.width} ${m.height}`); wire.style.height = m.height + 'px';
+  bgP.setAttribute('d', d); fgP.setAttribute('d', d);
+  total = fgP.getTotalLength(); fgP.style.strokeDasharray = total;
+  samples = []; let maxY = -1; const N = Math.ceil(total / 10);
+  for (let i = 0; i <= N; i++) { const p = fgP.getPointAtLength(total * i / N); maxY = Math.max(maxY, p.y); samples.push(maxY); }
+}
+const lenAtY = y => { let lo = 0, hi = samples.length - 1; if (y <= samples[0]) return 0; if (y >= samples[hi]) return total;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; samples[mid] < y ? lo = mid : hi = mid; }
+  const t = (y - samples[lo]) / Math.max(1e-6, samples[hi] - samples[lo]); return total * (lo + t) / (samples.length - 1); };
+let building = 0; const rebuild = () => { cancelAnimationFrame(building); building = requestAnimationFrame(build); };
+new ResizeObserver(rebuild).observe(main); addEventListener('load', rebuild); if (document.fonts) document.fonts.ready.then(rebuild);
+const nav = $('#nav'), steps = $$('.step');
+function tick() {
+  requestAnimationFrame(tick);
+  nav.classList.toggle('scrolled', scrollY > 10);
+  if (!total) return;
+  const top = main.getBoundingClientRect().top;
+  const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+  const target = atEnd ? total : lenAtY(-top + innerHeight * .58);
+  cur = reduce ? target : cur + (target - cur) * .14; if (Math.abs(target - cur) < .5) cur = target;
+  fgP.style.strokeDashoffset = total - cur;
+  const p = fgP.getPointAtLength(cur);
+  headC.setAttribute('cx', p.x); headC.setAttribute('cy', p.y); haloC.setAttribute('cx', p.x); haloC.setAttribute('cy', p.y);
+  const show = cur > 2 && cur < total - 1 ? 1 : 0; headC.style.opacity = show; haloC.style.opacity = show * .22;
+  for (const n of pts) { const hit = p.y >= n.y - 1 && cur > 2; n.el.classList.toggle('hit', hit); const st = n.el.closest('.step'); if (st) st.classList.toggle('on', hit); }
+}
+build(); requestAnimationFrame(tick);
+
+/* ---------- formulär (demo) ---------- */
+$('#form').addEventListener('submit', e => { e.preventDefault(); const f = e.target;
+  if (!f.namn.value.trim()) return f.namn.focus(); if (!f.epost.value || !f.epost.validity.valid) return f.epost.focus(); $('#ok').hidden = false; });
+})();
+</script>
