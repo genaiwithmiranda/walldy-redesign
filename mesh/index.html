@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Walldy AI — Vi gör AI enkelt och lönsamt</title>
+<meta name="description" content="Walldy bygger AI-agenter och automationer, skräddarsydda för er verksamhet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,200..500,100,0&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Walldys rubrikfont är Recoleta. Fraunces (SOFT 100, Light) är en fri, nästan identisk ersättare.
+   Lägg Recoleta-Light.woff2 i fonts/ och avkommentera raden nedan för originalet.
+@font-face{font-family:'Recoleta';src:url('fonts/Recoleta-Light.woff2') format('woff2');font-weight:300;font-display:swap} */
+:root{
+  --brand:#FF733B; --brand-deep:#c8501f;
+  --ink:#121212; --ink-2:#3a3a3a; --muted:#6b6b6b;
+  --line:rgba(18,18,18,.1); --line-2:rgba(18,18,18,.18);
+  --bg:#f3f3f1; --panel:#f6f6f4; --white:#fff;
+  --sans:'Inter Tight',system-ui,-apple-system,sans-serif;
+  --display:'Recoleta','Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --gut:clamp(24px,6vw,112px);
+  --sec:clamp(120px,20vh,220px);
+  --nav:80px;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
+body{margin:0;color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  background:radial-gradient(110% 80% at 50% 50%,#ffffff 0%,#f3f3f1 55%,#e4e4e1 100%) fixed}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+::selection{background:var(--brand);color:#fff}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;pointer-events:none}
+.fallback-logo{position:fixed;left:50%;top:50%;width:min(40vw,300px);transform:translate(-50%,-50%);z-index:0}
+main,footer{position:relative;z-index:1}
+.mono,.idx{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.idx{color:var(--muted);display:inline-flex;align-items:center;gap:12px}
+.idx::before{content:"";width:28px;height:1px;background:var(--brand)}
+.display{font-family:var(--display);font-variation-settings:'SOFT' 100,'WONK' 0;font-weight:300;letter-spacing:-.025em;line-height:1.04;margin:0}
+
+/* ---------- Fasta lager: brus, hörn, progress, markör ---------- */
+.grain{position:fixed;inset:-50%;z-index:30;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 1.2s steps(6) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
+.frame{position:fixed;inset:calc(var(--nav) + 18px) 22px 22px;z-index:14;pointer-events:none}
+.frame i{position:absolute;width:18px;height:18px;border-color:var(--line-2);border-style:solid;border-width:0}
+.frame i:nth-child(1){left:0;top:0;border-left-width:1px;border-top-width:1px}
+.frame i:nth-child(2){right:0;top:0;border-right-width:1px;border-top-width:1px}
+.frame i:nth-child(3){left:0;bottom:0;border-left-width:1px;border-bottom-width:1px}
+.frame i:nth-child(4){right:0;bottom:0;border-right-width:1px;border-bottom-width:1px}
+.hud{position:fixed;bottom:30px;z-index:15;pointer-events:none;color:var(--muted)}
+.hud-l{left:52px}.hud-r{right:52px;display:flex;gap:10px;align-items:center}
+.hud-r b{color:var(--ink);font-weight:500}
+.progress{position:fixed;left:0;right:0;top:0;height:2px;z-index:40;background:var(--brand);transform-origin:left;transform:scaleX(0)}
+.cursor,.cursor-dot{position:fixed;left:0;top:0;z-index:50;pointer-events:none;border-radius:50%;transform:translate(-100px,-100px)}
+.cursor{width:38px;height:38px;margin:-19px 0 0 -19px;border:1px solid rgba(255,115,59,.7);transition:width .35s var(--ease),height .35s var(--ease),margin .35s var(--ease),background .35s}
+.cursor.big{width:72px;height:72px;margin:-36px 0 0 -36px;background:rgba(255,115,59,.08)}
+.cursor-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--brand)}
+@media (hover:none){.cursor,.cursor-dot{display:none}}
+
+/* ---------- Nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;height:var(--nav);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:0 var(--gut);background:rgba(246,246,244,.55);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border-bottom:1px solid var(--line)}
+.nav .logo svg{height:40px;width:auto;display:block}
+.nav ul{display:flex;gap:clamp(24px,3.2vw,52px);list-style:none;margin:0;padding:0}
+.nav ul a{font-size:15px;font-weight:500;position:relative;padding:8px 0}
+.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--brand);transform:scaleX(0);transform-origin:right;transition:transform .5s var(--ease)}
+.nav ul a:hover::after{transform:scaleX(1);transform-origin:left}
+.nav .right{justify-self:end;display:flex;gap:28px;align-items:center}
+.status{display:flex;align-items:center;gap:10px;color:var(--ink-2)}
+.status i{width:7px;height:7px;border-radius:50%;background:var(--brand);animation:ping 2s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,115,59,.55)}70%{box-shadow:0 0 0 9px rgba(255,115,59,0)}100%{box-shadow:0 0 0 0 rgba(255,115,59,0)}}
+
+/* ---------- Knappar ---------- */
+.btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn{position:relative;display:inline-flex;align-items:center;gap:14px;height:54px;padding:0 30px;border-radius:999px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--ink);overflow:hidden;isolation:isolate;transition:color .45s var(--ease),border-color .45s var(--ease)}
+.btn::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--brand);transform:translateY(101%);transition:transform .55s var(--ease)}
+.btn:hover::before{transform:none}
+.btn-dark{background:var(--ink);color:#f2f2f2}
+.btn-dark:hover{border-color:var(--brand);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.4);backdrop-filter:blur(6px)}
+.btn-ghost:hover{border-color:var(--brand);color:#fff}
+.btn .arr{transition:transform .45s var(--ease)}
+.btn:hover .arr{transform:translateX(5px)}
+.btn:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:4px}
+
+/* ---------- Reveal ---------- */
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding:.2em .04em .26em;margin:-.2em -.04em -.26em}
+.w>span{display:inline-block;transform:translateY(115%);transition:transform 1.2s var(--ease)}
+.in .w>span{transform:none}
+.fade{opacity:0;transform:translateY(24px);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease)}
+.fade.in{opacity:1;transform:none}
+
+/* ---------- 001 Hero (sticky, loggan snurrar) ---------- */
+.hero{height:240vh;position:relative}
+.sticky{position:sticky;top:0;height:100vh;overflow:hidden}
+.hero .sticky{position:sticky}
+.hero-top{position:absolute;top:calc(var(--nav) + 40px);left:0;right:0;display:flex;justify-content:center;z-index:2}
+.kicker{display:inline-flex;align-items:center;gap:12px;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:9px 18px 9px 10px;background:rgba(255,255,255,.7);backdrop-filter:blur(8px)}
+.kicker svg{width:24px;height:26px}
+.h-hero{font-size:clamp(44px,5.2vw,92px);margin:0}
+/* Två textblock symmetriskt kring blomman: lika bred kolumn, samma höjd, samma avstånd till loggan */
+.side{position:absolute;top:50%;transform:translateY(-50%);width:calc(50% - var(--gut) - var(--logo-r));z-index:2}
+.hero{--logo-r:clamp(220px,19vw,290px)}
+.side.l1{left:var(--gut);text-align:right}
+.side.l2{right:var(--gut);text-align:left}
+.rot{display:inline-grid;vertical-align:top;overflow:hidden;padding:.2em .06em .28em;margin:-.2em -.06em -.28em;text-align:left}
+.rot>span{grid-area:1/1;transform:translateY(160%);transition:transform 1s var(--ease);
+  background:linear-gradient(100deg,var(--brand) 0%,var(--brand) 40%,#ffc89a 50%,var(--brand) 60%,var(--brand) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4.5s linear infinite}
+.rot>span.on{transform:none}
+.rot>span.out{transform:translateY(-160%)}
+@keyframes shine{from{background-position:120% 0}to{background-position:-130% 0}}
+.hero-bottom{position:absolute;left:0;right:0;bottom:clamp(48px,7vh,72px);display:flex;flex-direction:column;align-items:center;gap:clamp(32px,4.5vh,48px);text-align:center;z-index:2;padding:0 var(--gut)}
+.hero-bottom .lead{max-width:46ch;margin:0;color:var(--ink-2)}
+.scrollhint{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--muted)}
+.mouse{width:20px;height:32px;border:1px solid var(--ink-2);border-radius:12px;position:relative}
+.mouse::after{content:"";position:absolute;left:50%;top:7px;width:2px;height:7px;margin-left:-1px;border-radius:2px;background:var(--brand);animation:wheel 1.8s var(--ease) infinite}
+@keyframes wheel{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
+
+/* ---------- 002 Sex områden (loggan delar sig) ---------- */
+.areas{height:260vh;position:relative}
+.areas .sticky{padding:calc(var(--nav) + 56px) var(--gut) 72px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center}
+.areas h2{font-size:clamp(36px,4.2vw,68px)}
+.areas .head{display:flex;flex-direction:column;align-items:center;gap:22px}
+.areas .note{max-width:44ch;margin:0;color:var(--ink-2)}
+.areas-mobile{display:none}
+.labels{position:fixed;inset:0;z-index:2;pointer-events:none}
+.labels svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.labels polyline{fill:none;stroke:rgba(18,18,18,.3);stroke-width:1}
+.labels circle{fill:var(--brand)}
+.lab{position:absolute;left:0;top:0;width:min(300px,22vw);pointer-events:auto;will-change:transform,opacity;padding:16px 18px;border:1px solid var(--line);border-radius:16px;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .35s,background .35s}
+.lab .t{display:flex;gap:10px;align-items:baseline;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:22px;letter-spacing:-.01em;line-height:1.2}
+.lab .t b{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--brand);letter-spacing:.08em}
+.lab .flow{margin-top:14px;display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:6px}
+.lab .flow span{font-size:9px;padding:5px 8px}
+.lab{transition:border-color .35s,background .35s,box-shadow .35s}
+.lab:hover,.lab.on{border-color:var(--brand);background:#fff;box-shadow:0 18px 40px -18px rgba(255,115,59,.45)}
+.lab:not(.on) .flow i::after{animation-play-state:paused;opacity:0}
+
+/* ---------- 003 Budskap (ord tänds med scroll) ---------- */
+.statement{padding:var(--sec) var(--gut);background:var(--panel);border-top:1px solid var(--line)}
+.statement .idx{margin-bottom:56px}
+.big-quote{font-size:clamp(34px,4.6vw,76px);max-width:22ch;margin:0 auto 0 0}
+.big-quote .q{opacity:.14;transition:opacity .5s var(--ease),color .5s}
+.big-quote .q.on{opacity:1}
+.big-quote .q.hl.on{color:var(--brand)}
+.statement-foot{display:flex;justify-content:flex-end;margin-top:96px}
+.statement-foot p{max-width:38ch;margin:0;color:var(--ink-2)}
+
+/* ---------- 004 Tjänster ---------- */
+.offer{padding:var(--sec) var(--gut);background:var(--panel);border-top:1px solid var(--line)}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:var(--gut);align-items:end;margin-bottom:clamp(64px,10vh,120px)}
+.sec-head h2{font-size:clamp(38px,4.4vw,72px);margin-top:28px}
+.sec-head p{justify-self:end;max-width:36ch;margin:0;color:var(--ink-2)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,1.6vw,24px)}
+.card{position:relative;border:1px solid var(--line);border-radius:22px;padding:32px;min-height:300px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  background:linear-gradient(180deg,#fff,rgba(255,255,255,.6));opacity:0;transform:translateY(40px) scale(.98);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease),border-color .5s}
+.card.in{opacity:1;transform:none}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%),rgba(255,115,59,.14),transparent 60%);opacity:0;transition:opacity .4s}
+.card::after{content:"";position:absolute;left:0;top:0;height:2px;width:100%;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform .7s var(--ease)}
+.card:hover{border-color:rgba(255,115,59,.5)}
+.card:hover::before{opacity:1}
+.card:hover::after{transform:scaleX(1)}
+.card .top{display:flex;justify-content:space-between;color:var(--muted)}
+.card h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(24px,2vw,30px);line-height:1.15;letter-spacing:-.015em;margin:56px 0 40px;max-width:14ch}
+.flow{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:8px}
+.flow span{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:6px 10px;white-space:nowrap;background:#fff}
+.flow span:last-child{border-color:var(--brand);color:var(--brand-deep)}
+.flow i{height:1px;background:repeating-linear-gradient(90deg,rgba(18,18,18,.3) 0 3px,transparent 3px 6px);position:relative}
+.flow i::after{content:"";position:absolute;top:-2px;left:0;width:5px;height:5px;border-radius:50%;background:var(--brand);box-shadow:0 0 10px 2px rgba(255,115,59,.6);animation:run 2.4s var(--ease) infinite}
+.flow i:nth-of-type(2)::after{animation-delay:1.2s}
+@keyframes run{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:calc(100% - 5px);opacity:0}}
+
+/* ---------- Band: integrationer ---------- */
+.band{background:var(--white);border-top:1px solid var(--line);overflow:hidden}
+.band-in{padding:var(--sec) var(--gut) clamp(72px,12vh,120px);display:grid;grid-template-columns:1fr 1fr;gap:var(--gut);align-items:end}
+.band h2{font-size:clamp(38px,4.4vw,72px);margin-top:28px}
+.band p{justify-self:end;max-width:36ch;margin:0;color:var(--ink-2)}
+.marquee{display:flex;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:30px 0}
+.marquee div{display:flex;gap:56px;padding-right:56px;animation:mq 42s linear infinite;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(26px,2.6vw,40px);letter-spacing:-.01em}
+.marquee em{font-style:normal;color:var(--brand)}
+@keyframes mq{to{transform:translateX(-100%)}}
+
+/* ---------- 005 Process (ett steg i taget) ---------- */
+.process{height:380vh;position:relative;background:var(--panel);border-top:1px solid var(--line)}
+.process .sticky{padding:calc(var(--nav) + 56px) var(--gut) 72px;display:grid;grid-template-rows:auto 1fr auto}
+.process h2{font-size:clamp(38px,4.4vw,72px);margin-top:28px}
+.pwrap{position:relative;align-self:center}
+.pstep{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:var(--gut);align-items:center;opacity:0;transform:translateY(40px);transition:opacity .8s var(--ease),transform .8s var(--ease);pointer-events:none}
+.pstep.on{opacity:1;transform:none;position:relative}
+.pstep .num{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(140px,22vw,360px);line-height:.85;letter-spacing:-.04em;color:var(--brand)}
+.pstep h3{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(36px,3.8vw,60px);letter-spacing:-.02em;margin:0 0 24px;line-height:1.05}
+.pstep p{margin:0;max-width:32ch;color:var(--ink-2);font-size:18px}
+.ptrack{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.ptrack div{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:16px;position:relative;transition:color .4s}
+.ptrack div::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--line)}
+.ptrack div::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--brand);transform-origin:left;transform:scaleX(var(--f,0))}
+.ptrack div.on{color:var(--ink)}
+
+/* ---------- 006 Kontakt ---------- */
+.cta{height:100vh;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;padding:0 var(--gut) 10vh}
+.cta h2{font-size:clamp(46px,6vw,104px)}
+.cta .sub{margin:28px 0 64px;color:var(--ink-2);max-width:36ch}
+.cta .idx{margin-bottom:32px}
+
+.contact{position:relative;padding:calc(var(--nav) + 40vh) var(--gut) var(--sec);border-top:1px solid var(--line);background:linear-gradient(180deg,transparent 0,transparent 70vh,rgba(255,255,255,.85) 100vh,#fff 120vh)}
+.contact-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px;margin-bottom:clamp(72px,11vh,120px)}
+.contact-head h2{font-size:clamp(40px,5vw,84px)}
+.contact-head p{margin:0;color:var(--ink-2);max-width:40ch}
+.contact-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(48px,7vw,120px);max-width:1240px;margin:0 auto}
+.field{position:relative;display:block;margin-bottom:36px}
+.field input,.field textarea{width:100%;border:0;border-bottom:1px solid var(--line-2);background:transparent;padding:24px 0 12px;font:inherit;font-size:18px;color:var(--ink);outline:none;resize:vertical;border-radius:0}
+.field span{position:absolute;left:0;top:24px;color:var(--muted);transition:all .35s var(--ease);pointer-events:none}
+.field input:focus+span,.field input:not(:placeholder-shown)+span,.field textarea:focus+span,.field textarea:not(:placeholder-shown)+span{top:0;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand)}
+.field::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform .55s var(--ease)}
+.field:focus-within::after{transform:scaleX(1)}
+.field:has(textarea)::after{bottom:6px}
+.field.err input{border-bottom-color:#d6452a}
+.field.err span{color:#d6452a}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,3vw,40px)}
+.chips{border:0;padding:0;margin:4px 0 40px;display:flex;flex-wrap:wrap;gap:10px}
+.chips legend{margin-bottom:18px;color:var(--muted);padding:0}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:10px 18px;border:1px solid var(--line-2);border-radius:999px;font-size:15px;cursor:pointer;transition:background .3s,border-color .3s,color .3s}
+.chip span:hover{border-color:var(--brand)}
+.chip input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip input:focus-visible+span{outline:2px solid var(--brand);outline-offset:3px}
+.form-foot{display:flex;align-items:center;gap:32px;flex-wrap:wrap;margin-top:24px}
+.muted{color:var(--muted)}
+.form-ok{margin:32px 0 0;padding:20px 24px;border:1px solid var(--brand);border-radius:16px;background:rgba(255,115,59,.06)}
+.form-ok b{color:var(--brand-deep);font-weight:600}
+.contact-info{border-left:1px solid var(--line);padding-left:clamp(28px,4vw,64px);display:flex;flex-direction:column;gap:48px}
+.contact-info h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400;margin:0 0 12px}
+.big-link{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(28px,2.6vw,40px);letter-spacing:-.015em;line-height:1.1;display:inline-block}
+a.big-link{background:linear-gradient(var(--brand),var(--brand)) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease),color .3s}
+a.big-link:hover{background-size:100% 1px;color:var(--brand)}
+.how{list-style:none;margin:0;padding:0;counter-reset:h;display:flex;flex-direction:column;gap:16px}
+.how li{counter-increment:h;display:grid;grid-template-columns:40px 1fr;color:var(--ink-2);font-size:16px}
+.how li::before{content:"0" counter(h);font-family:var(--mono);font-size:11px;color:var(--brand);padding-top:5px}
+footer{background:var(--ink);color:#cfcfcf;padding:clamp(80px,12vh,140px) var(--gut) 48px}
+.foot-word{font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(64px,13vw,220px);line-height:.9;letter-spacing:-.04em;color:#f3f3f3;margin:0 0 72px}
+.foot-word b{color:var(--brand);font-weight:300}
+.foot-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gut);padding-top:40px;border-top:1px solid #2b2b2b}
+.foot-cols h4{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a;font-weight:400;margin:0 0 16px}
+.foot-cols a,.foot-cols span{display:block;line-height:2}
+.foot-cols a:hover{color:var(--brand)}
+.foot-legal{display:flex;justify-content:space-between;margin-top:72px;color:#777}
+
+/* ---------- Mobil ---------- */
+@media (max-width:900px){
+  :root{--nav:68px}
+  body{font-size:16px}
+  .nav{grid-template-columns:1fr auto}
+  .nav ul,.status,.frame,.hud{display:none}
+  .nav .logo svg{height:32px}
+  .btn{height:50px;padding:0 24px}
+  .hero .sticky{display:flex;flex-direction:column;align-items:center;padding:calc(var(--nav) + 20px) var(--gut) 28px}
+  .hero-top{position:static}
+  .k-ort{display:none}
+  .h-hero{flex:1;width:100%;display:flex;flex-direction:column;justify-content:space-between;font-size:clamp(40px,11vw,56px);margin:24px 0 20px;text-align:center}
+  .side{position:static;transform:none;width:auto;text-align:center!important}
+  .hero-bottom{position:static;gap:20px;padding:0}
+  .hero-bottom .lead{font-size:15px}
+  .hero-bottom .btns{justify-content:center}
+  .labels{display:none}
+  .areas .sticky{justify-content:space-between}
+  .areas-mobile{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-top:24px}
+  .areas-mobile b{color:var(--brand);font-weight:500;margin-right:6px}
+  .sec-head,.band-in{grid-template-columns:1fr}
+  .sec-head p,.band p{justify-self:start}
+  .cards{grid-template-columns:1fr}
+  .card{min-height:0}
+  .pstep{grid-template-columns:1fr;gap:12px}
+  .ptrack{grid-template-columns:repeat(4,1fr);gap:8px}
+  .ptrack div{font-size:9px}
+  .foot-cols{grid-template-columns:1fr}
+  .contact-grid,.row2{grid-template-columns:1fr;gap:0}
+  .contact-grid{gap:56px}
+  .contact-info{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:48px}
+  .foot-legal{flex-direction:column;gap:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .w>span,.card,.fade{transform:none!important;opacity:1!important;transition:none!important}
+  .rot>span{transition:none;animation:none}
+  .grain,.flow i::after,.marquee div,.status i,.mouse::after{animation:none}
+}
+
+/* ===== v2: förbättringar ===== */
+.lab .d{display:block;max-height:0;opacity:0;overflow:hidden;font-size:13.5px;line-height:1.4;color:var(--ink-2);margin-top:0;transition:max-height .5s var(--ease),opacity .4s,margin-top .5s var(--ease)}
+.lab.on .d,.lab:hover .d{max-height:64px;opacity:1;margin-top:12px}
+.proof{padding:var(--sec) var(--gut);border-top:1px solid var(--line);background:var(--bg)}
+.proof h2{font-size:clamp(34px,4.2vw,68px);margin-top:32px;max-width:17ch}
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:clamp(48px,8vh,96px)}
+.proof-grid>div{padding:40px 28px 0;border-right:1px solid var(--line)}
+.proof-grid>div:first-child{padding-left:0}
+.proof-grid>div:last-child{border-right:0}
+.proof-grid strong{display:block;font-family:var(--display);font-variation-settings:'SOFT' 100;font-weight:300;font-size:clamp(72px,10vw,168px);letter-spacing:-.04em;line-height:.95}
+.proof-grid strong i{font-style:normal;color:var(--brand)}
+.proof-grid span{display:block;margin-top:16px;color:var(--muted)}
+.toolrow{margin-top:clamp(64px,10vh,120px);display:flex;overflow:hidden;white-space:nowrap;-webkit-mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.toolrow div{display:flex;gap:10px;padding-right:10px;flex:none;animation:toolslide 38s linear infinite}
+.toolrow span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:13px 22px;background:#fff}
+@keyframes toolslide{to{transform:translateX(-100%)}}
+.toolnote{margin:20px 0 0;color:var(--muted)}
+.people{display:flex;flex-direction:column}
+.people a{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:14px 0;border-top:1px solid var(--line);font-size:16px;transition:color .25s}
+.people a:hover{color:var(--brand-deep)}
+.people small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.contact-info .big-link{font-size:clamp(24px,2.2vw,34px)}
+@media (max-width:900px){.proof-grid{grid-template-columns:1fr}.proof-grid>div{border-right:0;border-bottom:1px solid var(--line);padding:28px 0}}
+@media (prefers-reduced-motion:reduce){.toolrow div{animation:none}}
+.proposal{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:10px;white-space:nowrap;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="proposal mono">Designförslag · inte Walldys officiella webbplats</div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div><div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<img class="fallback-logo" id="fallback" src="walldy-logo.svg" alt="" hidden>
+<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="hud hud-l mono" aria-hidden="true">Walldy AI — 62.39°N 17.31°E</div>
+<div class="hud hud-r mono" aria-hidden="true"><b id="hudIdx">001</b> / 006 <span id="hudName">Start</span></div>
+
+<header class="nav">
+  <a class="logo" href="#top" aria-label="Walldy AI, till start"><svg viewBox="0 0 220 58" fill="none"><use href="#walldy-logo"/></svg></a>
+  <ul>
+    <li><a href="#omraden">Områden</a></li>
+        <li><a href="#process">Process</a></li>
+    <li><a href="#kontakt">Kontakt</a></li>
+  </ul>
+  <div class="right">
+    <span class="status mono"><i></i>Tar nya projekt</span>
+    <a class="btn btn-dark" href="#kontakt">Boka samtal</a>
+  </div>
+</header>
+
+<main>
+  <!-- 001 HERO -->
+  <section class="hero" id="top" data-idx="001" data-name="Start">
+    <div class="sticky">
+      <div class="hero-top"><span class="kicker mono"><svg viewBox="0 0 53 58" fill="none"><use href="#walldy-logo"/></svg>AI-agenter &amp; automation<span class="k-ort"> · Sundsvall</span></span></div>
+      <h1 class="h-hero display">
+        <span class="side l1"><span class="reveal">Vi gör AI</span><br><span class="reveal">enkelt</span></span>
+        <span class="side l2"><span class="reveal">och</span><br><span class="rot" id="rot"><span class="on">skalbart.</span><span>lönsamt.</span><span>säkert.</span><span>prisvärt.</span></span></span>
+      </h1>
+      <div class="hero-bottom">
+        <p class="lead fade">AI-agenter och automationer, byggda för just er verksamhet.</p>
+        <div class="btns fade">
+          <a class="btn btn-dark mag" href="#kontakt">Boka ett samtal <span class="arr">→</span></a>
+          <a class="btn btn-ghost mag" href="#omraden">Utforska</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 002 SEX OMRÅDEN -->
+  <section class="areas" id="omraden" data-idx="002" data-name="Områden">
+    <div class="sticky">
+      <div class="head">
+        <span class="idx scr">002 — Ett system</span>
+        <h2 class="display reveal">Sex områden.<br>Ett sammankopplat flöde.</h2>
+      </div>
+      <div>
+        <p class="note fade">Varje cell i blomman är ett område med sitt eget flöde. Tillsammans blir de ett system.</p>
+        <div class="areas-mobile"><span><b>01</b>Försäljning</span><span><b>02</b>Kundkontakt</span><span><b>03</b>Administration</span><span><b>04</b>Ekonomi</span><span><b>05</b>Marknadsföring</span><span><b>06</b>Intern kunskap</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 003 BUDSKAP -->
+  <section class="statement" data-idx="003" data-name="Filosofi">
+    <span class="idx scr">003 — Oavsett var ni står</span>
+    <p class="big-quote display" id="quote">Vi möter er <span class="hl">där ni är.</span> Från den lilla förbättringen som sparar timmar varje vecka, till lösningen som <span class="hl">förändrar ett helt arbetsflöde.</span></p>
+    <div class="statement-foot"><p class="fade">Kanske använder ni redan ChatGPT eller Copilot. Kanske har ni inte börjat alls. Vi hittar nästa steg.</p></div>
+  </section>
+
+
+
+  <!-- 005 PROCESS -->
+  <section class="process" id="process" data-idx="004" data-name="Process">
+    <div class="sticky">
+      <div><span class="idx scr">004 — Så arbetar vi</span><h2 class="display">Rätt steg i rätt ordning.</h2></div>
+      <div class="pwrap" id="pwrap">
+        <div class="pstep on"><div class="num">01</div><div><h3>Kartläggning</h3><p>Vi lyssnar in hur ni arbetar idag. Ingen kravspecifikation behövs.</p></div></div>
+        <div class="pstep"><div class="num">02</div><div><h3>Prioritering</h3><p>Det som ger störst nytta först, med kortast väg till resultat.</p></div></div>
+        <div class="pstep"><div class="num">03</div><div><h3>Utveckling</h3><p>Vi bygger, testar och kopplar ihop med systemen ni redan har.</p></div></div>
+        <div class="pstep"><div class="num">04</div><div><h3>Partnerskap</h3><p>Vi finns kvar och bygger vidare när ni vill ta nästa steg.</p></div></div>
+      </div>
+      <div class="ptrack" id="ptrack"><div>Kartläggning</div><div>Prioritering</div><div>Utveckling</div><div>Partnerskap</div></div>
+    </div>
+  </section>
+
+
+  <!-- 005 SIFFROR OCH VERKTYG -->
+  <section class="proof" data-idx="005" data-name="I siffror">
+    <span class="idx scr">005 — I siffror</span>
+    <h2 class="display reveal">Bygg vidare på det som fungerar. Bygg nytt där det behövs.</h2>
+    <div class="proof-grid">
+      <div class="fade"><strong data-count="5">0<i>+</i></strong><span class="mono">Års erfarenhet</span></div>
+      <div class="fade"><strong data-count="50">0<i>+</i></strong><span class="mono">Lyckade projekt</span></div>
+      <div class="fade"><strong data-count="100">0<i>%</i></strong><span class="mono">Svensk drift och utveckling</span></div>
+    </div>
+    <div class="toolrow" aria-label="Verktyg vi kopplar ihop">
+      <div><span>OpenAI</span><span>Slack</span><span>Notion</span><span>HubSpot</span><span>Stripe</span><span>Shopify</span><span>Google Calendar</span><span>n8n</span></div>
+      <div aria-hidden="true"><span>OpenAI</span><span>Slack</span><span>Notion</span><span>HubSpot</span><span>Stripe</span><span>Shopify</span><span>Google Calendar</span><span>n8n</span></div>
+    </div>
+    <p class="toolnote mono">Vi kopplar ihop AI med systemen ni redan har</p>
+  </section>
+
+  <!-- 006 KONTAKT -->
+  <section class="contact" id="kontakt" data-idx="006" data-name="Kontakt">
+    <div class="contact-head">
+      <span class="idx scr">006 — Kontakt</span>
+      <h2 class="display reveal">Berätta vad ni<br>vill automatisera.</h2>
+      <p class="fade">En rad räcker. Vi hör av oss, normalt inom en arbetsdag, och bokar en inledande dialog.</p>
+    </div>
+    <div class="contact-grid">
+      <form class="form fade" id="form" novalidate>
+        <div class="row2">
+          <label class="field"><input name="namn" autocomplete="name" required placeholder=" "><span>Namn</span></label>
+          <label class="field"><input name="foretag" autocomplete="organization" placeholder=" "><span>Företag</span></label>
+        </div>
+        <div class="row2">
+          <label class="field"><input type="email" name="epost" autocomplete="email" required placeholder=" "><span>E-post</span></label>
+          <label class="field"><input type="tel" name="telefon" autocomplete="tel" placeholder=" "><span>Telefon (valfritt)</span></label>
+        </div>
+        <fieldset class="chips"><legend class="mono">Vad vill ni automatisera?</legend>
+          <label class="chip"><input type="checkbox" name="omrade" value="Försäljning"><span>Försäljning</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Kundkontakt"><span>Kundkontakt</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Administration"><span>Administration</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Ekonomi"><span>Ekonomi</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Marknadsföring"><span>Marknadsföring</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Intern kunskap"><span>Intern kunskap</span></label>
+          <label class="chip"><input type="checkbox" name="omrade" value="Vet inte än"><span>Vet inte än</span></label>
+        </fieldset>
+        <label class="field"><textarea name="meddelande" rows="3" placeholder=" "></textarea><span>Vad vill ni förbättra?</span></label>
+        <div class="form-foot">
+          <button class="btn btn-dark mag" type="submit">Skicka <span class="arr">→</span></button>
+          <span class="mono muted">Inga tekniska förkunskaper krävs</span>
+        </div>
+        <p class="form-ok" id="formOk" role="status" hidden><b>Demo.</b> Inget har skickats. Formuläret kopplas till e-post före lansering.</p>
+      </form>
+      <aside class="contact-info fade">
+        <div><h4 class="mono">Mejl</h4><a class="big-link" href="mailto:info@walldy.ai">info@walldy.ai</a></div>
+        <div><h4 class="mono">Telefon</h4><a class="big-link" href="tel:+46101985753">010 198 57 53</a></div>
+        <div><h4 class="mono">Direkt till oss</h4><div class="people">
+          <a href="mailto:pontus@walldy.ai"><span>Pontus Henriksson<small>VD &amp; IT-ansvarig</small></span><span>→</span></a>
+          <a href="mailto:iggy@walldy.ai"><span>Iggy Lundmark<small>Affärs- och marknadsansvarig</small></span><span>→</span></a>
+        </div></div>
+        <div><h4 class="mono">Så går det till</h4>
+          <ol class="how"><li>Ni skickar en rad om vad ni vill förbättra.</li><li>Vi hör av oss och bokar en inledande dialog.</li><li>Tillsammans hittar vi det första steget.</li></ol></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p class="foot-word">walldy<b>.</b>ai</p>
+  <div class="foot-cols">
+    <div><h4>Kontakt</h4><a href="mailto:info@walldy.ai">info@walldy.ai</a><a href="tel:+46101985753">010 198 57 53</a><span>Sundsvall, Sverige</span></div>
+    <div><h4>Meny</h4><a href="#omraden">Områden</a><a href="#process">Process</a><a href="#kontakt">Kontakt</a></div>
+    <div><h4>Nyhetsbrev</h4><span>Håll dig uppdaterad om AI i praktiken.</span><a href="https://walldy.ai">Prenumerera →</a></div>
+  </div>
+  <div class="foot-legal mono"><span>© 2026 Walldy AB · Org.nr 559589-5243</span><span>AI-byrå i Sundsvall</span></div>
+</footer>
+
+<div class="labels" id="labels">
+  <svg aria-hidden="true"><g id="leaders"></g></svg>
+  <a class="lab" href="#kontakt" data-cell="1"><span class="t"><b>01</b>Försäljning</span><span class="flow"><span>Nytt lead</span><i></i><span>Kvalificering</span><i></i><span>Bokat möte</span></span><span class="d">Mer tid till att faktiskt sälja.</span></a>
+  <a class="lab" href="#kontakt" data-cell="0"><span class="t"><b>02</b>Kundkontakt</span><span class="flow"><span>Kund</span><i></i><span>AI-agent</span><i></i><span>Rätt person</span></span><span class="d">Tillgängliga när kunderna behöver er.</span></a>
+  <a class="lab" href="#kontakt" data-cell="5"><span class="t"><b>03</b>Administration</span><span class="flow"><span>Dokument</span><i></i><span>Automation</span><i></i><span>Klart</span></span><span class="d">Låt det repetitiva sköta sig självt.</span></a>
+  <a class="lab" href="#kontakt" data-cell="4"><span class="t"><b>04</b>Ekonomi</span><span class="flow"><span>Underlag</span><i></i><span>Kontroll</span><i></i><span>Rapport</span></span><span class="d">Mindre handpåläggning. Bättre flöden.</span></a>
+  <a class="lab" href="#kontakt" data-cell="3"><span class="t"><b>05</b>Marknadsföring</span><span class="flow"><span>Idé</span><i></i><span>Innehåll</span><i></i><span>Publicerat</span></span><span class="d">Från idé till publicerat, snabbare.</span></a>
+  <a class="lab" href="#kontakt" data-cell="2"><span class="t"><b>06</b>Intern kunskap</span><span class="flow"><span>Fråga</span><i></i><span>Kunskap</span><i></i><span>Svar</span></span><span class="d">Från vem vet det här till svar direkt.</span></a>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="walldy-logo">
+<path d="M34.95 27.35Q35.9 29 34.95 30.65L32.15 35.5Q31.2 37.14 29.3 37.14L23.7 37.14Q21.8 37.14 20.85 35.5L18.05 30.65Q17.1 29 18.05 27.35L20.85 22.5Q21.8 20.86 23.7 20.86L29.3 20.86Q31.2 20.86 32.15 22.5Z" fill="#FF733B"/>
+<path d="M26.5 22.6Q26.95 28.55 32.9 29Q26.95 29.45 26.5 35.4Q26.05 29.45 20.1 29Q26.05 28.55 26.5 22.6Z" fill="white"/>
+<path id="logo-stroke" d="M34.1 27.61 L34.5 29 L34.1 30.39 L31.5 34.89 L30.5 35.93 L29.1 36.27 L23.9 36.27 L22.5 35.93 L21.5 34.89 L18.9 30.39 L18.5 29 L18.9 27.61 L21.5 23.11 L22.5 22.07 L23.9 21.73 L29.1 21.73 L30.5 22.07 L31.5 23.11 Z M34.2 9.41 L34.6 10.8 L34.2 12.18 L31.55 16.77 L30.55 17.81 L29.15 18.16 L23.85 18.16 L22.45 17.81 L21.45 16.77 L18.8 12.18 L18.4 10.8 L18.8 9.41 L21.45 4.82 L22.45 3.78 L23.85 3.44 L29.15 3.44 L30.55 3.78 L31.55 4.82 Z M49.96 18.51 L50.36 19.9 L49.96 21.28 L47.31 25.87 L46.31 26.91 L44.91 27.26 L39.61 27.26 L38.21 26.91 L37.21 25.87 L34.56 21.28 L34.16 19.9 L34.56 18.51 L37.21 13.92 L38.21 12.88 L39.61 12.54 L44.91 12.54 L46.31 12.88 L47.31 13.92 Z M49.96 36.72 L50.36 38.1 L49.96 39.49 L47.31 44.08 L46.31 45.12 L44.91 45.46 L39.61 45.46 L38.21 45.12 L37.21 44.08 L34.56 39.49 L34.16 38.1 L34.56 36.72 L37.21 32.13 L38.21 31.09 L39.61 30.74 L44.91 30.74 L46.31 31.09 L47.31 32.13 Z M34.2 45.82 L34.6 47.2 L34.2 48.59 L31.55 53.18 L30.55 54.22 L29.15 54.56 L23.85 54.56 L22.45 54.22 L21.45 53.18 L18.8 48.59 L18.4 47.2 L18.8 45.82 L21.45 41.23 L22.45 40.19 L23.85 39.84 L29.15 39.84 L30.55 40.19 L31.55 41.23 Z M18.44 36.72 L18.84 38.1 L18.44 39.49 L15.79 44.08 L14.79 45.12 L13.39 45.46 L8.09 45.46 L6.69 45.12 L5.69 44.08 L3.04 39.49 L2.64 38.1 L3.04 36.72 L5.69 32.13 L6.69 31.09 L8.09 30.74 L13.39 30.74 L14.79 31.09 L15.79 32.13 Z M18.44 18.51 L18.84 19.9 L18.44 21.28 L15.79 25.87 L14.79 26.91 L13.39 27.26 L8.09 27.26 L6.69 26.91 L5.69 25.87 L3.04 21.28 L2.64 19.9 L3.04 18.51 L5.69 13.92 L6.69 12.88 L8.09 12.54 L13.39 12.54 L14.79 12.88 L15.79 13.92 Z" stroke="#FF733B" stroke-width="2.0" stroke-linejoin="round"/>
+<path d="M209.128 38.245C209.176 38.749 209.308 39.145 209.524 39.433C209.74 39.697 209.968 39.865 210.208 39.937C210.448 39.985 210.664 40.057 210.856 40.153C211.048 40.249 211.144 40.393 211.144 40.585C211.144 41.089 210.376 41.341 208.84 41.341C207.976 41.341 207.34 41.185 206.932 40.873C206.524 40.537 206.284 39.901 206.212 38.965C205.3 40.645 203.572 41.485 201.028 41.485C199.012 41.485 197.392 41.005 196.168 40.045C194.944 39.085 194.332 37.753 194.332 36.049C194.308 34.369 194.908 33.061 196.132 32.125C197.38 31.189 198.976 30.721 200.92 30.721C202.84 30.721 204.316 31.201 205.348 32.161L205.276 31.189C205.06 28.981 204.616 27.337 203.944 26.257C203.272 25.177 202.24 24.637 200.848 24.637C200.008 24.637 199.312 24.853 198.76 25.285C198.208 25.717 197.824 26.185 197.608 26.689C197.416 27.193 197.176 27.661 196.888 28.093C196.6 28.525 196.264 28.741 195.88 28.741C195.448 28.741 195.1 28.621 194.836 28.381C194.596 28.141 194.476 27.817 194.476 27.409C194.476 26.401 195.064 25.501 196.24 24.709C197.44 23.893 198.976 23.485 200.848 23.485C203.032 23.485 204.772 24.157 206.068 25.501C207.388 26.821 208.168 28.681 208.408 31.081L209.128 38.245ZM201.82 40.333C202.996 40.333 203.956 39.961 204.7 39.217C205.444 38.449 205.792 37.501 205.744 36.373L205.6 34.753C205.408 33.889 204.952 33.193 204.232 32.665C203.536 32.137 202.672 31.873 201.64 31.873C200.416 31.873 199.42 32.221 198.652 32.917C197.884 33.613 197.5 34.513 197.5 35.617C197.5 36.961 197.896 38.089 198.688 39.001C199.504 39.889 200.548 40.333 201.82 40.333ZM215.531 20.425C214.787 20.425 214.199 20.221 213.767 19.813C213.335 19.405 213.119 18.865 213.119 18.193C213.119 17.521 213.335 16.981 213.767 16.573C214.223 16.141 214.811 15.925 215.531 15.925C216.227 15.925 216.791 16.141 217.223 16.573C217.655 16.981 217.871 17.521 217.871 18.193C217.871 18.865 217.655 19.405 217.223 19.813C216.791 20.221 216.227 20.425 215.531 20.425ZM213.443 41.125C212.987 41.125 212.759 40.969 212.759 40.657V40.513C212.759 40.345 212.867 40.189 213.083 40.045C213.299 39.877 213.515 39.685 213.731 39.469C213.947 39.229 214.055 38.929 214.055 38.569V27.841C214.055 27.289 213.839 26.809 213.407 26.401C212.975 25.993 212.759 25.729 212.759 25.609V25.537C212.759 25.369 212.939 25.189 213.299 24.997L216.071 23.629C216.455 23.485 216.731 23.461 216.899 23.557C217.091 23.653 217.187 23.845 217.187 24.133V38.569C217.187 38.857 217.259 39.109 217.403 39.325C217.547 39.517 217.715 39.661 217.907 39.757C218.099 39.853 218.267 39.973 218.411 40.117C218.555 40.237 218.627 40.369 218.627 40.513V40.657C218.627 40.969 218.375 41.125 217.871 41.125H213.443Z" fill="#1E1E1E"/>
+<path d="M186.301 38.9492L186.695 40.5732L186.64 40.5498L185.03 39.6816L184.5 39.3955V38.5088L186.301 38.9492ZM190 39.3916L189.496 39.6572L187.777 40.5586L187.764 40.5654L188.251 38.9561L190 38.5312V39.3916ZM186.831 35.2598L186.534 36.2676L186.314 37.0098L184.5 37.5176V36.4463L185.03 36.1611L186.662 35.2822L186.661 35.2812L186.854 35.1787L186.831 35.2598ZM187.898 35.2793L189.486 36.1582L190 36.4424V37.4902L188.264 37.0107L187.794 35.2705L187.777 35.2119L187.898 35.2793Z" fill="#1E1E1E" stroke="#FF733B"/>
+<path d="M111.38 14.315C111.812 14.315 112.028 14.447 112.028 14.711V14.819C112.028 15.011 111.788 15.275 111.308 15.611C110.828 15.923 110.492 16.331 110.3 16.835L103.208 38.939C102.992 39.563 102.524 39.875 101.804 39.875C101.204 39.875 100.796 39.575 100.58 38.975L95.288 23.567L89.744 38.939C89.552 39.563 89.132 39.875 88.484 39.875C87.908 39.875 87.5 39.575 87.26 38.975L78.656 16.871C78.488 16.439 78.248 16.103 77.936 15.863C77.624 15.623 77.36 15.431 77.144 15.287C76.928 15.143 76.82 14.975 76.82 14.783V14.711C76.82 14.447 77.036 14.315 77.468 14.315H82.544C83 14.315 83.228 14.459 83.228 14.747V14.819C83.228 15.011 83.096 15.191 82.832 15.359C82.568 15.503 82.34 15.695 82.148 15.935C81.956 16.151 81.932 16.463 82.076 16.871L89.096 35.807L94.388 20.975L92.984 16.835C92.816 16.331 92.468 15.911 91.94 15.575C91.436 15.239 91.184 14.975 91.184 14.783V14.711C91.184 14.447 91.376 14.315 91.76 14.315H96.908C97.316 14.315 97.52 14.447 97.52 14.711V14.783C97.52 14.951 97.376 15.107 97.088 15.251C96.824 15.395 96.584 15.587 96.368 15.827C96.152 16.067 96.104 16.403 96.224 16.835L102.488 35.771L108.356 16.835C108.452 16.547 108.44 16.295 108.32 16.079C108.224 15.863 108.08 15.707 107.888 15.611C107.72 15.515 107.552 15.407 107.384 15.287C107.216 15.143 107.132 14.999 107.132 14.855V14.783C107.132 14.471 107.348 14.315 107.78 14.315H111.38ZM126.808 36.995C126.856 37.499 126.988 37.895 127.204 38.183C127.42 38.447 127.648 38.615 127.888 38.687C128.128 38.735 128.344 38.807 128.536 38.903C128.728 38.999 128.824 39.143 128.824 39.335C128.824 39.839 128.056 40.091 126.52 40.091C125.656 40.091 125.02 39.935 124.612 39.623C124.204 39.287 123.964 38.651 123.892 37.715C122.98 39.395 121.252 40.235 118.708 40.235C116.692 40.235 115.072 39.755 113.848 38.795C112.624 37.835 112.012 36.503 112.012 34.799C111.988 33.119 112.588 31.811 113.812 30.875C115.06 29.939 116.656 29.471 118.6 29.471C120.52 29.471 121.996 29.951 123.028 30.911L122.956 29.939C122.74 27.731 122.296 26.087 121.624 25.007C120.952 23.927 119.92 23.387 118.528 23.387C117.688 23.387 116.992 23.603 116.44 24.035C115.888 24.467 115.504 24.935 115.288 25.439C115.096 25.943 114.856 26.411 114.568 26.843C114.28 27.275 113.944 27.491 113.56 27.491C113.128 27.491 112.78 27.371 112.516 27.131C112.276 26.891 112.156 26.567 112.156 26.159C112.156 25.151 112.744 24.251 113.92 23.459C115.12 22.643 116.656 22.235 118.528 22.235C120.712 22.235 122.452 22.907 123.748 24.251C125.068 25.571 125.848 27.431 126.088 29.831L126.808 36.995ZM119.5 39.083C120.676 39.083 121.636 38.711 122.38 37.967C123.124 37.199 123.472 36.251 123.424 35.123L123.28 33.503C123.088 32.639 122.632 31.943 121.912 31.415C121.216 30.887 120.352 30.623 119.32 30.623C118.096 30.623 117.1 30.971 116.332 31.667C115.564 32.363 115.18 33.263 115.18 34.367C115.18 35.711 115.576 36.839 116.368 37.751C117.184 38.639 118.228 39.083 119.5 39.083ZM130.943 39.875C130.487 39.875 130.259 39.719 130.259 39.407V39.299C130.259 39.107 130.463 38.855 130.871 38.543C131.303 38.207 131.519 37.811 131.519 37.355V17.123C131.519 16.715 131.411 16.379 131.195 16.115C131.003 15.827 130.799 15.599 130.583 15.431C130.367 15.263 130.259 15.107 130.259 14.963V14.891C130.259 14.699 130.427 14.507 130.763 14.315L133.571 12.947C133.931 12.803 134.207 12.791 134.399 12.911C134.591 13.007 134.687 13.187 134.687 13.451V37.355C134.687 37.811 134.915 38.207 135.371 38.543C135.851 38.855 136.091 39.107 136.091 39.299V39.407C136.091 39.719 135.851 39.875 135.371 39.875H130.943ZM139.45 39.875C138.994 39.875 138.766 39.719 138.766 39.407V39.299C138.766 39.107 138.97 38.855 139.378 38.543C139.81 38.207 140.026 37.811 140.026 37.355V17.123C140.026 16.715 139.918 16.379 139.702 16.115C139.51 15.827 139.306 15.599 139.09 15.431C138.874 15.263 138.766 15.107 138.766 14.963V14.891C138.766 14.699 138.934 14.507 139.27 14.315L142.078 12.947C142.438 12.803 142.714 12.791 142.906 12.911C143.098 13.007 143.194 13.187 143.194 13.451V37.355C143.194 37.811 143.422 38.207 143.878 38.543C144.358 38.855 144.598 39.107 144.598 39.299V39.407C144.598 39.719 144.358 39.875 143.878 39.875H139.45ZM163.834 37.355C163.834 37.835 164.05 38.255 164.482 38.615C164.938 38.975 165.166 39.227 165.166 39.371V39.479C165.166 39.743 164.986 39.875 164.626 39.875H161.602C161.242 39.875 161.038 39.683 160.99 39.299L160.918 37.499C160.318 38.387 159.526 39.071 158.542 39.551C157.582 40.007 156.55 40.235 155.446 40.235C153.166 40.235 151.21 39.395 149.578 37.715C147.946 36.035 147.13 33.863 147.13 31.199C147.13 28.583 147.934 26.435 149.542 24.755C151.15 23.075 153.154 22.235 155.554 22.235C157.666 22.235 159.406 23.015 160.774 24.575V16.727C160.774 16.295 160.642 15.947 160.378 15.683C160.138 15.419 159.886 15.215 159.622 15.071C159.382 14.927 159.262 14.771 159.262 14.603V14.531C159.262 14.291 159.442 14.087 159.802 13.919L162.718 12.947C163.462 12.659 163.834 12.839 163.834 13.487V37.355ZM156.202 39.047C157.354 39.047 158.398 38.591 159.334 37.679C160.294 36.743 160.774 35.471 160.774 33.863H160.81L160.774 32.027V28.427C160.774 27.203 160.246 26.063 159.19 25.007C158.158 23.927 156.934 23.387 155.518 23.387C153.958 23.387 152.686 24.011 151.702 25.259C150.742 26.483 150.25 28.103 150.226 30.119C150.178 32.615 150.718 34.727 151.846 36.455C152.974 38.159 154.426 39.023 156.202 39.047ZM184.619 22.595C184.955 22.595 185.123 22.739 185.123 23.027V23.135C185.123 23.351 184.907 23.639 184.475 23.999C184.067 24.359 183.743 24.815 183.503 25.367L176.699 40.379C176.291 41.315 175.991 41.975 175.799 42.359C175.607 42.767 175.271 43.379 174.791 44.195C174.335 45.011 173.915 45.599 173.531 45.959C173.147 46.343 172.643 46.691 172.019 47.003C171.419 47.339 170.783 47.507 170.111 47.507C168.839 47.507 167.783 47.159 166.943 46.463C166.103 45.791 165.683 45.071 165.683 44.303C165.683 43.871 165.803 43.523 166.043 43.259C166.283 42.995 166.619 42.863 167.051 42.863C167.459 42.863 167.807 43.031 168.095 43.367C168.383 43.727 168.587 44.123 168.707 44.555C168.851 44.987 169.079 45.371 169.391 45.707C169.727 46.067 170.147 46.247 170.651 46.247C172.067 46.247 173.531 44.351 175.043 40.559L168.131 25.331C167.867 24.803 167.507 24.359 167.051 23.999C166.619 23.639 166.403 23.351 166.403 23.135V23.027C166.403 22.739 166.583 22.595 166.943 22.595H171.623C171.959 22.595 172.127 22.739 172.127 23.027V23.135C172.127 23.303 172.019 23.495 171.803 23.711C171.611 23.903 171.467 24.095 171.371 24.287C171.275 24.455 171.323 24.815 171.515 25.367L176.699 37.571L181.847 25.655C182.039 25.223 182.075 24.875 181.955 24.611C181.835 24.323 181.667 24.119 181.451 23.999C181.235 23.855 181.019 23.711 180.803 23.567C180.587 23.423 180.479 23.279 180.479 23.135V23.027C180.479 22.739 180.659 22.595 181.019 22.595H184.619Z" fill="#1E1E1E"/>
+</g></defs></svg>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+/* ============================================================
+   KONFIG
+   ============================================================ */
+const BRAND = '#FF733B';
+const GLOW_COLOR = '#FFC27A';   // färgvågen som vandrar runt i linjerna
+const LOGO_D = document.getElementById('logo-stroke').getAttribute('d');
+const LOGO_CENTER = [26.5, 29], LOGO_H = 58, LOGO_STROKE = 2;
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)};
+
+/* ---------- Ord-reveal ---------- */
+document.querySelectorAll('.reveal').forEach(el=>{
+  const out=[];
+  el.childNodes.forEach(n=>{
+    if(n.nodeType===3){n.textContent.split(/(\s+)/).forEach(t=>{ if(!t) return; out.push(/^\s+$/.test(t)?document.createTextNode(t):Object.assign(document.createElement('span'),{className:'w',innerHTML:`<span>${t}</span>`}));});}
+    else out.push(n.cloneNode(true));
+  });
+  el.textContent=''; out.forEach(n=>el.appendChild(n));
+  el.querySelectorAll('.w>span').forEach((s,i)=>s.style.transitionDelay=(i*60)+'ms');
+});
+/* ---------- Scramble på mono-etiketter ---------- */
+const GLYPHS='01#/\\<>_=+*ABCDEFXYZ';
+function scramble(el){
+  if(reduce) return; const final=el.textContent; let f=0; const total=22;
+  const tick=()=>{f++; el.textContent=final.split('').map((c,i)=>c===' '||c==='—'||f>i*1.2+total*.4?c:GLYPHS[(Math.random()*GLYPHS.length)|0]).join(''); if(f<total+final.length*1.2) requestAnimationFrame(tick); else el.textContent=final;};
+  tick();
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); if(e.target.classList.contains('scr')) scramble(e.target); io.unobserve(e.target);} }),{threshold:0,rootMargin:'0px 0px -12% 0px'});
+document.querySelectorAll('.reveal,.scr,.card,.fade').forEach(el=>io.observe(el));
+document.querySelectorAll('.card').forEach((c,i)=>{c.style.transitionDelay=(i%3)*110+'ms';
+  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px');});});
+setTimeout(()=>document.querySelectorAll('.hero .reveal,.hero .fade').forEach(el=>el.classList.add('in')),120);
+/* ---------- v2: siffror räknar upp ---------- */
+{ const cio=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; cio.unobserve(e.target);
+    const el=e.target, to=+el.dataset.count, t0=performance.now(); if(reduce){el.firstChild.textContent=to;return;}
+    (function up(n){const q=clamp((n-t0)/1500); el.firstChild.textContent=Math.round(to*(1-Math.pow(1-q,3))); if(q<1) requestAnimationFrame(up);})(t0); }),{threshold:.4});
+  document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el)); }
+/* ---------- Magnetiska knappar + markör ---------- */
+if(!reduce && fine){
+  document.querySelectorAll('.mag').forEach(b=>{
+    b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.2}px,${(e.clientY-r.top-r.height/2)*.35}px)`;});
+    b.addEventListener('pointerleave',()=>b.style.transform='');
+  });
+  const cur=document.getElementById('cursor'), dot=document.getElementById('cursorDot'); let cx=-100,cy=-100,tx=-100,ty=-100;
+  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;dot.style.transform=`translate(${tx}px,${ty}px)`;});
+  document.querySelectorAll('a,button').forEach(a=>{a.addEventListener('pointerenter',()=>cur.classList.add('big'));a.addEventListener('pointerleave',()=>cur.classList.remove('big'));});
+  (function loop(){cx=lerp(cx,tx,.18);cy=lerp(cy,ty,.18);cur.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(loop);})();
+}
+/* ---------- Kontaktformulär (demo: koppla till e-post/CRM innan lansering) ---------- */
+{ const f=document.getElementById('form'), ok=document.getElementById('formOk');
+  f.addEventListener('submit',e=>{ e.preventDefault(); let bad=null;
+    f.querySelectorAll('.field').forEach(l=>{ const i=l.querySelector('input,textarea'); const err=i.required&&(!i.value.trim()||(i.type==='email'&&!/^\S+@\S+\.\S+$/.test(i.value))); l.classList.toggle('err',err); if(err&&!bad) bad=i; });
+    if(bad){ bad.focus(); return; }
+    ok.hidden=false; f.querySelector('button[type=submit]').disabled=true; }); }
+/* ---------- Roterande ord, som på walldy.ai ---------- */
+{ const words=[...document.querySelectorAll('#rot>span')]; let i=0;
+  if(!reduce) setInterval(()=>{ const a=words[i]; i=(i+1)%words.length; const b=words[i];
+    a.classList.remove('on'); a.classList.add('out'); b.classList.remove('out'); b.classList.add('on');
+    setTimeout(()=>{a.style.transition='none';a.classList.remove('out');void a.offsetWidth;a.style.transition='';},1050); },2800); }
+/* ---------- Budskap: ord tänds med scroll ---------- */
+const quote=document.getElementById('quote'); const qWords=[];
+{ const walk=(node,hl)=>{ [...node.childNodes].forEach(n=>{ if(n.nodeType===3){ const frag=document.createDocumentFragment();
+      n.textContent.split(/(\s+)/).forEach(t=>{ if(!t) return; if(/^\s+$/.test(t)){frag.appendChild(document.createTextNode(t));return;}
+        const s=document.createElement('span'); s.className='q'+(hl?' hl':''); s.textContent=t; qWords.push(s); frag.appendChild(s); });
+      n.replaceWith(frag); } else walk(n, n.classList&&n.classList.contains('hl')); }); };
+  walk(quote,false); }
+/* ---------- Scrollstyrt: progress, HUD, budskap, process ---------- */
+const progress=document.getElementById('progress'), hudIdx=document.getElementById('hudIdx'), hudName=document.getElementById('hudName');
+const secs=[...document.querySelectorAll('[data-idx]')];
+const pwrap=document.getElementById('pwrap'), psteps=[...pwrap.children], ptrack=[...document.getElementById('ptrack').children], processEl=document.getElementById('process');
+function domTick(){
+  const H=innerHeight, sy=scrollY, max=document.documentElement.scrollHeight-H;
+  progress.style.transform=`scaleX(${max>0?sy/max:0})`;
+  const cur=secs.filter(s=>s.getBoundingClientRect().top<H*.5).pop()||secs[0];
+  if(hudIdx.textContent!==cur.dataset.idx){hudIdx.textContent=cur.dataset.idx;hudName.textContent=cur.dataset.name;}
+  const qr=quote.getBoundingClientRect(), qp=clamp((H*.85-qr.top)/(qr.height+H*.35));
+  qWords.forEach((w,i)=>w.classList.toggle('on',reduce||i/qWords.length<qp*1.1));
+  const pr=processEl.getBoundingClientRect(), pp=clamp(-pr.top/(pr.height-H)), step=Math.min(3,Math.floor(pp*4));
+  psteps.forEach((el,i)=>el.classList.toggle('on',i===step));
+  ptrack.forEach((el,i)=>{el.style.setProperty('--f',clamp(pp*4-i).toFixed(3));el.classList.toggle('on',i<=step);});
+  requestAnimationFrame(domTick);
+}
+requestAnimationFrame(domTick);
+
+/* ============================================================
+   3D: Walldy-blomman. Hel i hero (snurrar + glänser med scroll),
+   delar sig i sex celler i "Områden", sätts ihop igen vid kontakten.
+   ============================================================ */
+let THREE, LineSegments2, LineSegmentsGeometry, LineMaterial;
+try{
+  THREE = await import('three');
+  ({LineSegments2}=await import('three/addons/lines/LineSegments2.js'));
+  ({LineSegmentsGeometry}=await import('three/addons/lines/LineSegmentsGeometry.js'));
+  ({LineMaterial}=await import('three/addons/lines/LineMaterial.js'));
+}catch(e){ THREE=null; }
+const canvas=document.getElementById('gl');
+let renderer=null;
+if(THREE){ try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'}); }catch(e){ renderer=null; } }
+if(!renderer){ canvas.hidden=true; document.getElementById('fallback').hidden=false; document.getElementById('labels').hidden=true; }
+else init();
+
+function init(){
+const PR=Math.min(devicePixelRatio||1,2);
+renderer.setPixelRatio(PR); renderer.setClearColor(0x000000,0); renderer.autoClear=false;
+/* Diskret ljust raster: mjukt brus som halvtonsprickar, varmare nära blomman */
+const bgScene=new THREE.Scene(), bgCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const bgUni={uTime:{value:0},uRes:{value:new THREE.Vector2()},uPR:{value:PR},uScroll:{value:0},uFade:{value:1},uGlow:{value:new THREE.Vector2(.5,.5)},uGlowAmt:{value:0}};
+bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:bgUni,transparent:true,depthTest:false,depthWrite:false,
+  vertexShader:`void main(){gl_Position=vec4(position.xy,0.,1.);}`,
+  fragmentShader:`uniform float uTime,uPR,uScroll,uFade,uGlowAmt;uniform vec2 uRes,uGlow;
+    float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    float n(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+    void main(){
+      float cell=7.*uPR; vec2 px=gl_FragCoord.xy; vec2 g=floor(px/cell)*cell+cell*.5; vec2 uv=g/uRes.y;
+      vec2 q=uv*1.5+vec2(uTime*.016,uScroll*.3);
+      float v=smoothstep(.4,.88,fbm(q+fbm(q*1.3+uTime*.025)*1.1));
+      vec2 c=(g-uGlow*uRes)/uRes.y; float glow=exp(-dot(c,c)*5.)*uGlowAmt;
+      float r=clamp(v*.5+glow*.4,0.,.9)*cell*.5;
+      float dotm=1.-smoothstep(r-.8*uPR,r+.2,length(px-g));
+      vec2 e=px/uRes-.5; float vig=smoothstep(.75,.15,length(e*vec2(1.,.85)));
+      vec3 col=mix(vec3(.07),vec3(1.,.45,.23),clamp(glow*1.4,0.,1.));
+      float a=dotm*(.05+.12*v+.35*glow)*vig*uFade;
+      gl_FragColor=vec4(col*a,a);
+    }`})));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,.1,60);
+const group=new THREE.Group(); scene.add(group);     // position/skala per sektion
+const spinner=new THREE.Group(); group.add(spinner); // snurr + mus
+
+/* --- 1. Loggans streck från SVG:n --- */
+function parsePath(d){const tk=d.match(/[MLVHZ]|-?\d*\.?\d+(?:e-?\d+)?/gi), lines=[];let cmd='',x=0,y=0,cur=null,i=0;
+  while(i<tk.length){const t=tk[i]; if(/^[MLVHZ]$/i.test(t)){cmd=t.toUpperCase();i++; if(cmd==='Z'&&cur){cur.push(cur[0].slice());} continue;}
+    if(cmd==='M'){x=+tk[i];y=+tk[i+1];i+=2;cur=[[x,y]];lines.push(cur);cmd='L';}
+    else if(cmd==='L'){x=+tk[i];y=+tk[i+1];i+=2;cur.push([x,y]);}
+    else if(cmd==='V'){y=+tk[i];i++;cur.push([x,y]);}
+    else if(cmd==='H'){x=+tk[i];i++;cur.push([x,y]);}
+    else i++;}
+  return lines;}
+const S=2.5/LOGO_H;
+const L2W=([x,y])=>[(x-LOGO_CENTER[0])*S,-(y-LOGO_CENTER[1])*S];
+const raw=[]; let total=0;
+parsePath(LOGO_D).forEach(pl=>{for(let i=0;i<pl.length-1;i++){const a=L2W(pl[i]),b=L2W(pl[i+1]);const l=Math.hypot(b[0]-a[0],b[1]-a[1]); if(l>1e-6){raw.push([a,b,l]);total+=l;}}});
+
+/* --- 2. Celler: mitt-hexagonen + 6 yttre (= de sex områdena) --- */
+const R_CENTER=.435, EXPLODE=1.05, TILT=.7, STAGGER=.25;
+const ORDER=[1,0,5,4,3,2];                         // cellindex medsols från toppen = område 01..06
+const cellOf=([x,y])=>{ if(Math.hypot(x,y)<R_CENTER) return -1; const a=Math.atan2(y,x)-Math.PI/6; return ((Math.round(a/(Math.PI/3))%6)+6)%6; };
+const cells=Array.from({length:7},(_,i)=>{const k=i-1, rank=k<0?-1:ORDER.indexOf(k), a=k<0?0:Math.PI/6+k*Math.PI/3;
+  return {k,rank,dx:k<0?0:Math.cos(a),dy:k<0?0:Math.sin(a),z:k<0?0:(rank%2?1:-1)*STAGGER,tilt:k<0?0:TILT*(rank%2?1:-1),
+          d:k<0?0:rank*.07, cx:0,cy:0,n:0, lift:0, fill:0, pts:[], hoverT:0};});
+const cellAt=k=>cells[k+1];
+const segs=[], struts=[], walls=[], seen=new Set(), PIECES=240; let pieceCount=0;
+raw.forEach(([a,b,l])=>{
+  const c=cellAt(cellOf([(a[0]+b[0])/2,(a[1]+b[1])/2]));
+  c.cx+=a[0]+b[0]; c.cy+=a[1]+b[1]; c.n+=2; c.pts.push(a,b); walls.push({a,b,c});
+  const n=Math.max(1,Math.round(l/total*PIECES));
+  for(let i=0;i<n;i++){
+    const p0=[lerp(a[0],b[0],i/n),lerp(a[1],b[1],i/n)], p1=[lerp(a[0],b[0],(i+1)/n),lerp(a[1],b[1],(i+1)/n)];
+    const ord=pieceCount++; segs.push({p0,p1,c,L0:1,L1:1,ord}); segs.push({p0,p1,c,L0:-1,L1:-1,back:1,ord});
+  }
+  [a,b].forEach(v=>{const key=v[0].toFixed(3)+','+v[1].toFixed(3)+','+c.k; if(seen.has(key)) return; seen.add(key); struts.push({p0:v,p1:v,c,L0:1,L1:-1});});
+});
+cells.forEach(c=>{c.cx/=c.n; c.cy/=c.n;});
+
+/* --- 3. Tjocka linjer, bredd = loggans streck --- */
+const BASE=new THREE.Color(BRAND), GLOW=new THREE.Color(GLOW_COLOR), BG=new THREE.Color('#f3f3f1'), SHINE=new THREE.Color('#fff6ec');
+const STROKE=LOGO_STROKE*S;
+function makeLines(list,width){
+  const pos=new Float32Array(list.length*6), col=new Float32Array(list.length*6);
+  const geo=new LineSegmentsGeometry(); geo.setPositions(pos); geo.setColors(col);
+  const mat=new LineMaterial({worldUnits:true,linewidth:width,vertexColors:true});
+  const obj=new LineSegments2(geo,mat); obj.frustumCulled=false; spinner.add(obj);
+  return {list,pos,col,geo,mat,obj};
+}
+const Lf=makeLines(segs,STROKE), Ls=makeLines(struts,STROKE*.55);
+
+/* --- v2: Kropp. Genomskinliga väggar mellan främre och bakre lagret, så att loggan blir ett massivt föremål när den vrids (osynliga rakt framifrån) --- */
+const wallPos=new Float32Array(walls.length*18), wallGeo=new THREE.BufferGeometry(); wallGeo.setAttribute('position',new THREE.BufferAttribute(wallPos,3));
+const wallMat=new THREE.MeshBasicMaterial({color:BRAND,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
+const wallMesh=new THREE.Mesh(wallGeo,wallMat); wallMesh.frustumCulled=false; wallMesh.renderOrder=-2; wallMesh.visible=false; spinner.add(wallMesh);
+const WALL_Q=[[0,1],[0,-1],[1,1],[0,-1],[1,-1],[1,1]];
+/* --- v2: Mjuk skugga under loggan. Smalnar när loggan vrids --- */
+const shUni={uA:{value:0}};
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(3.6,.56),new THREE.ShaderMaterial({uniforms:shUni,transparent:true,depthWrite:false,depthTest:false,
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform float uA;varying vec2 vUv;void main(){vec2 p=(vUv-.5)*2.;float a=exp(-dot(p,p)*3.4)*uA;gl_FragColor=vec4(.5,.2,.07,a);}`}));
+shadow.position.set(0,-1.56,-.3); shadow.renderOrder=-6; group.add(shadow);
+
+/* Färgvåg (vandrar runt mitten) + glans (diagonalt band som sveper med scroll). Samma i loggans shader. */
+const FLOW_SPEED=.05;
+const flow=(x,y,t)=>{const a=Math.atan2(y,x)/(Math.PI*2)+.5; const f=((a*2-t*FLOW_SPEED*2)%1+1)%1; return sstep(0,.16,f)*(1-sstep(.16,.42,f));};
+let glintPos=-9;
+const glint=(x,y)=>{const s=(x+y)*.7071-glintPos; return Math.exp(-s*s/.045);};
+
+/* --- 4. Loggans fyllda mitt (hexagon + vit stjärna) som textur, i mitten mellan lagren --- */
+const planeUni={map:{value:null},uTime:{value:0},uGlow:{value:GLOW},uShine:{value:SHINE},uGlint:{value:-9},uOpacity:{value:0},uOff:{value:new THREE.Vector2((26.5-LOGO_CENTER[0])*S,-(29-LOGO_CENTER[1])*S)},uSpeed:{value:FLOW_SPEED}};
+const planeMat=new THREE.ShaderMaterial({uniforms:planeUni,transparent:true,depthWrite:false,side:THREE.DoubleSide,
+  vertexShader:`varying vec2 vUv;varying vec2 vP;uniform vec2 uOff;void main(){vUv=uv;vP=position.xy+uOff;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform sampler2D map;uniform float uTime,uSpeed,uGlint,uOpacity;uniform vec3 uGlow,uShine;varying vec2 vUv;varying vec2 vP;
+    float flow(vec2 p){float a=atan(p.y,p.x)/6.2831853+.5;float f=fract(a*2.-uTime*uSpeed*2.);return smoothstep(0.,.16,f)*(1.-smoothstep(.16,.42,f));}
+    void main(){vec4 c=texture2D(map,vUv);float sat=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));float m=smoothstep(.15,.45,sat);
+      float s=(vP.x+vP.y)*.7071-uGlint;float g=exp(-s*s/.045);
+      vec3 col=mix(c.rgb,uGlow,flow(vP)*m*.8);col=mix(col,uShine,g*m*.85);gl_FragColor=vec4(col,c.a*uOpacity);
+      #include <colorspace_fragment>
+    }`});
+const fillPlane=new THREE.Mesh(new THREE.PlaneGeometry(53*S,58*S),planeMat);
+fillPlane.position.set(planeUni.uOff.value.x,planeUni.uOff.value.y,0); fillPlane.renderOrder=5; spinner.add(fillPlane);
+{ const paths=[...document.querySelectorAll('#walldy-logo path')].slice(0,2).map(p=>p.outerHTML).join('');  // bara fyllningen
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 53 58" width="1060" height="1160" fill="none">${paths}</svg>`;
+  const img=new Image(); img.onload=()=>{const c=document.createElement('canvas');c.width=1855;c.height=2030;c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    const tx=new THREE.CanvasTexture(c); tx.colorSpace=THREE.SRGBColorSpace; tx.anisotropy=renderer.capabilities.getMaxAnisotropy(); planeUni.map.value=tx;};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg); }
+
+/* --- 4b. Blad: varje yttre cell får en fylld form (konvext hölje av cellens streck) som tänds i Områden --- */
+const hull=pts=>{const P=pts.map(p=>[p[0],p[1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]); const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[]; for(const p of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(const p of P.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
+  return lo.slice(0,-1).concat(up.slice(0,-1));};
+cells.forEach(c=>{ if(c.k<0) return; const h=hull(c.pts); const sh=new THREE.Shape(); h.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));
+  c.mat=new THREE.MeshBasicMaterial({color:BRAND,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
+  c.mesh=new THREE.Mesh(new THREE.ShapeGeometry(sh),c.mat); c.mesh.renderOrder=-1; c.mesh.visible=false; spinner.add(c.mesh); });
+
+/* --- 5. Ringar + orbitpunkt (futuristisk "skanner") --- */
+const rings=new THREE.Group(); group.add(rings);
+[1.9,2.3].forEach((r,i)=>{const g=new THREE.BufferGeometry().setFromPoints(Array.from({length:241},(_,k)=>new THREE.Vector3(Math.cos(k/240*Math.PI*2)*r,Math.sin(k/240*Math.PI*2)*r,-.6)));
+  rings.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0xb8b8b4,transparent:true,opacity:[.5,.28][i],depthWrite:false})));});
+const arcGeo=new THREE.BufferGeometry().setFromPoints(Array.from({length:41},(_,k)=>new THREE.Vector3(Math.cos(k/40*Math.PI*.35)*1.9,Math.sin(k/40*Math.PI*.35)*1.9,-.59)));
+const arc=new THREE.Line(arcGeo,new THREE.LineBasicMaterial({color:BRAND,transparent:true,opacity:.9,depthWrite:false})); rings.add(arc);
+
+/* --- 6. Placering och färg per punkt --- */
+const V=new THREE.Vector3(), C=new THREE.Color();
+let depth=.06;
+function place(x,y,L,c,out){
+  const lift=c.lift, sc=1+lift*.07;                     // aktiv cell lyfts fram och växer lite
+  return out.set(c.cx+(x-c.cx)*sc+c.dx*lift*.07, c.cy+(y-c.cy)*sc+c.dy*lift*.07, L*depth+lift*.3);
+}
+let intro=0;                                                    // 0 → 1 när sidan laddas: blomman ritas fram
+function update(o,time,isStrut){
+  const {list,pos,col}=o, N=pieceCount;
+  for(let i=0;i<list.length;i++){
+    const s=list[i], c=s.c;
+    const dr=isStrut?sstep(.9,1,intro):clamp((intro*1.18-s.ord/N*.95)/.12), head=!isStrut&&dr>0&&dr<1?1-dr:0;
+    for(let j=0;j<2;j++){
+      let P=j?s.p1:s.p0; if(j&&!isStrut) P=[lerp(s.p0[0],s.p1[0],dr),lerp(s.p0[1],s.p1[1],dr)];
+      place(P[0],P[1],j?s.L1:s.L0,c,V); if(dr<=0) V.set(1e3,1e3,1e3);
+      const o6=i*6+j*3; pos[o6]=V.x; pos[o6+1]=V.y; pos[o6+2]=V.z;
+      C.copy(BASE).lerp(GLOW,flow(P[0],P[1],time)*.85).lerp(SHINE,Math.max(glint(P[0],P[1])*.9,head));
+      C.lerp(GLOW,c.lift*.5*(1-c.fill));
+      if(isStrut||s.back) C.lerp(BG,(isStrut?.12:.28)*clamp(depth/.12));
+      C.lerp(BASE,c.fill);                                       // ifyllt blad: linjerna smälter ihop med fyllningen, helt orange
+      col[o6]=C.r; col[o6+1]=C.g; col[o6+2]=C.b;
+    }
+  }
+  o.geo.attributes.instanceStart.data.needsUpdate=true;
+  o.geo.attributes.instanceColorStart.data.needsUpdate=true;
+}
+
+/* --- 7. Etiketter i två kolumner (HUD-stil) --- */
+const labelsEl=document.getElementById('labels'), leaders=document.getElementById('leaders');
+const NS='http://www.w3.org/2000/svg';
+const labs=[...labelsEl.querySelectorAll('.lab')].map(el=>{const c=cellAt(+el.dataset.cell);
+  const line=document.createElementNS(NS,'polyline'), dot=document.createElementNS(NS,'circle'); dot.setAttribute('r','3.5'); leaders.append(line,dot);
+  el.addEventListener('pointerenter',()=>c.hoverT=1); el.addEventListener('pointerleave',()=>c.hoverT=0);
+  el.addEventListener('focus',()=>c.hoverT=1); el.addEventListener('blur',()=>c.hoverT=0);
+  return {el,c,line,dot,side:c.dx>-1e-6&&!(c.k===4)?1:-1};});
+
+/* --- Storlek, mus, scroll --- */
+let Wd=0,H=0;
+function resize(){Wd=innerWidth;H=innerHeight;renderer.setSize(Wd,H,false);camera.aspect=Wd/H;
+  const camZ=Math.max(7,3.9/(2*Math.tan(THREE.MathUtils.degToRad(16))*camera.aspect));
+  camera.position.set(0,0,camZ);camera.updateProjectionMatrix();
+  Lf.mat.resolution.set(Wd,H); Ls.mat.resolution.set(Wd,H); bgUni.uRes.value.set(Wd*PR,H*PR);}
+addEventListener('resize',resize);resize();
+let mx=0,my=0,smx=0,smy=0;
+addEventListener('pointermove',e=>{mx=e.clientX/Wd*2-1;my=e.clientY/H*2-1;});
+
+const hero=document.getElementById('top'), areas=document.getElementById('omraden'), cta=document.getElementById('kontakt');
+let last=performance.now(), t0=performance.now(), gx=0, gy=0, gs=1, spin=0, first=true;
+const prog=el=>{const r=el.getBoundingClientRect();return clamp(-r.top/(r.height-H));};
+
+function frame(now){
+  const time=now/1000, dt=Math.min(.05,(now-last)/1000); last=now;
+  intro=reduce?1:clamp((now-t0)/2600);
+  const wide=Wd>900;
+  const hp=prog(hero), ap=prog(areas);
+  const ar=areas.getBoundingClientRect(), aIn=clamp(1-ar.top/H);            // hur långt Områden har kommit in
+  const cr=cta.getBoundingClientRect(), cp=clamp(1-cr.top/H);
+  const inAreas=ar.top<H && ar.bottom>0;
+
+  // Områden: blomman står hel, cellerna tänds en i taget (01 → 06) med scroll. Pekar man på ett område tänds dess cell.
+  const toAreas=sstep(0,1,aIn)*(1-cp);
+  const active=inAreas&&ap>.08&&ap<.96?Math.min(5,Math.floor((ap-.08)/.84*6)):-1;
+  const anyHover=cells.some(c=>c.hoverT>0);
+  // v2: i heron lyfts den cell som muspekaren är närmast
+  let near=null;
+  if(fine&&!reduce&&intro>=1&&toAreas<.05&&cp<.05){ group.updateMatrixWorld(true); let best=(H*.1)*(H*.1);
+    cells.forEach(c=>{ if(c.k<0) return; V.set(c.cx,c.cy,0).applyMatrix4(spinner.matrixWorld).project(camera);
+      const dx=(V.x-mx)*Wd/2, dy=(V.y+my)*H/2, d=dx*dx+dy*dy; if(d<best){best=d;near=c;} }); }
+  cells.forEach(c=>{ const t=c.k<0?0:(anyHover?c.hoverT:(c.rank===active?1:(c===near?.75:0))); c.lift=reduce?t:lerp(c.lift,t,.12);
+    if(c.k<0) return;
+    const f=toAreas*((active>=0&&c.rank<=active)||c.hoverT>0||(inAreas&&ap>=.96)?1:0);   // bladen fylls ett i taget och stannar ifyllda
+    c.fill=reduce?f:lerp(c.fill,f,.1); });
+
+  // Snurr: ett helt varv genom hero, sedan framifrån i Områden, långsamt varv vid kontakten
+  const heroSpin=hp*Math.PI*2;
+  const target=(cp>0?heroSpin+cp*Math.PI*2:heroSpin)-toAreas*.45+(reduce?0:Math.sin(time*.6)*(.12+.1*toAreas));
+  spin=reduce?target:lerp(spin,target,first?1:.12);
+  smx=lerp(smx,mx,.05); smy=lerp(smy,my,.05);
+  spinner.rotation.set(smy*.18+.22*toAreas, spin+smx*.28, 0);
+  const turn=Math.abs(Math.sin(spin));
+  depth=.012+.24*turn+.08*toAreas;
+  Ls.obj.visible=false;                                                    // v3: väggarna ger kroppen, inga stavar                                     // stavar bara när de syns som linjer, aldrig som prickar
+
+  // Glans: sveper över loggan när man scrollar, och av sig själv var femte sekund
+  glintPos=-2.4+4.8*(((time/5)+scrollY/(H*.9))%1);
+  planeUni.uGlint.value=glintPos; planeUni.uTime.value=time;
+
+  // Placering per sektion
+  let tx=0, ty=wide?0:.15, ts=wide?.76:.58;
+  const toA=sstep(0,1,aIn);
+  tx=lerp(tx,0,toA); ts=lerp(ts,wide?.7:.62,toA); ty=lerp(ty,wide?-.28:.05,toA);
+  ts=lerp(ts,wide?.42:.46,cp); ty=lerp(ty,wide?1.02:1.4,cp);
+  ty+=clamp(-cr.top/(H*.7))*4;                                  // flyger ut uppåt när formuläret tar över
+  const k=first||reduce?1:.1; gx=lerp(gx,tx,k); gy=lerp(gy,ty,k); gs=lerp(gs,ts,k); first=false;
+  group.position.set(gx,gy,0); group.scale.setScalar(gs*(1+(reduce?0:.05*Math.sin(clamp((intro-.84)/.16)*Math.PI))));   // v2: liten puls när framritningen är klar
+  rings.rotation.set(-smy*.1,-smx*.1,0); arc.rotation.z=reduce?0:time*.5;
+
+  cells.forEach(c=>{ if(!c.mesh) return; const sc=1+c.lift*.07;
+    c.mesh.position.set(c.cx*(1-sc)+c.dx*c.lift*.07, c.cy*(1-sc)+c.dy*c.lift*.07, c.lift*.3+depth-.006);
+    c.mesh.scale.set(sc,sc,1); c.mat.opacity=c.fill; c.mesh.visible=c.fill>.01; });
+  fillPlane.position.z=depth-.006; planeUni.uOpacity.value=sstep(.8,1,intro);                              // mittens fyllning i samma plan som bladen, döljer bakre lagret
+  update(Lf,time,false); update(Ls,time,true);
+  { let o=0; for(const w of walls) for(const [e,L] of WALL_Q){ const P=e?w.b:w.a; place(P[0],P[1],L,w.c,V); wallPos[o++]=V.x; wallPos[o++]=V.y; wallPos[o++]=V.z; }
+    wallGeo.attributes.position.needsUpdate=true;
+    wallMat.opacity=.17*clamp((depth-.04)/.12)*sstep(.95,1,intro); wallMesh.visible=wallMat.opacity>.004;
+    shadow.scale.x=.36+.64*Math.abs(Math.cos(spin)); shUni.uA.value=.3*sstep(.6,1,intro)*(1-cp)*(1-.45*toAreas); }
+
+  // Etiketter
+  const lo=wide&&inAreas?sstep(.02,.12,ap)*(1-sstep(.94,1,ap)):0;
+  labelsEl.style.opacity=lo; labelsEl.style.visibility=lo>.02?'visible':'hidden';
+  if(lo>.02){
+    group.updateMatrixWorld(true);
+    const colL=Math.max(48,Wd*.06), colR=Wd-colL;
+    const placed={'1':[],'-1':[]};
+    labs.forEach(L=>{ const c=L.c; place(c.cx+c.dx*.4,c.cy+c.dy*.4,0,c,V); V.applyMatrix4(spinner.matrixWorld).project(camera);
+      L.ax=(V.x*.5+.5)*Wd; L.ay=(-V.y*.5+.5)*H; placed[L.side].push(L); });
+    Object.entries(placed).forEach(([side,list])=>{ side=+side; list.sort((a,b)=>a.ay-b.ay);
+      let prev=-1e9; list.forEach(L=>{ const h=L.el.offsetHeight, w=L.el.offsetWidth;
+        let y=clamp(L.ay-h/2,H*.2,H*.86-h); y=Math.max(y,prev+18); prev=y+h;
+        const x=side>0?colR-w:colL; L.el.style.transform=`translate(${x}px,${y}px)`; L.el.style.opacity=1;
+        const ex=side>0?x:x+w, ey=y+h/2, mid=L.ax+side*Math.min(60,Math.abs(ex-L.ax)*.35);
+        L.line.setAttribute('points',`${L.ax},${L.ay} ${mid},${L.ay} ${mid+side*24},${ey} ${ex},${ey}`);
+        L.line.style.opacity=.35+.65*L.c.lift; L.dot.setAttribute('r',3+3*L.c.lift); L.dot.setAttribute('cx',L.ax); L.dot.setAttribute('cy',L.ay);
+        L.el.classList.toggle('on',L.c.lift>.5); }); });
+  }
+
+  bgUni.uTime.value=reduce?0:time; bgUni.uScroll.value=scrollY/H; bgUni.uFade.value=(1-sstep(.2,1,aIn)*.5)*(1-cp*.4);
+  const gp=new THREE.Vector3(gx,gy,0).project(camera); bgUni.uGlow.value.set(gp.x*.5+.5,gp.y*.5+.5); bgUni.uGlowAmt.value=intro*(1-sstep(0,1,aIn)*.6);
+  renderer.clear(); renderer.render(bgScene,bgCam); renderer.clearDepth(); renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+}
+
+</script>
+</body>
+</html>
